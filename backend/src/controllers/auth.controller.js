@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
 const generateOtp = require("../utils/otpGenerator");
@@ -100,5 +101,42 @@ const verifyEmail = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+const login = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-module.exports = { register, verifyEmail };
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Invalid email or password" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Please verify your email first" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    return res.json({
+      message: "Login successful ✅",
+      token,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { register, verifyEmail, login };

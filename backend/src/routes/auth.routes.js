@@ -57,6 +57,17 @@ router.post(
   authController.verifyEmail
 );
 
+router.post(
+  "/login",
+  [
+    body("email").isEmail().withMessage("Valid email required"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+  ],
+  authController.login
+);
+
 /*
 ----------------------------------------------------
 PING ROUTE
