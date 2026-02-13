@@ -57,4 +57,48 @@ const register = async (req, res) => {
   }
 };
 
-module.exports = { register };
+const verifyEmail = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: "Email already verified" });
+    }
+
+    if (!user.verificationOtp || !user.verificationOtpExpires) {
+      return res
+        .status(400)
+        .json({ message: "No OTP found. Please register again." });
+    }
+
+    if (user.verificationOtpExpires < new Date()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    if (user.verificationOtp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    user.isVerified = true;
+    user.verificationOtp = undefined;
+    user.verificationOtpExpires = undefined;
+
+    await user.save();
+
+    return res.json({ message: "Email verified successfully ✅" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { register, verifyEmail };

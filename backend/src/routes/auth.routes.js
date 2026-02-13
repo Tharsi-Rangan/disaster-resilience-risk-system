@@ -46,6 +46,17 @@ router.post(
   authController.register
 );
 
+router.post(
+  "/verify-email",
+  [
+    body("email").isEmail().withMessage("Valid email is required"),
+    body("otp")
+      .isLength({ min: 6, max: 6 })
+      .withMessage("OTP must be 6 digits"),
+  ],
+  authController.verifyEmail
+);
+
 /*
 ----------------------------------------------------
 PING ROUTE
