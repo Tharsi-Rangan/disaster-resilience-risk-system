@@ -4,6 +4,7 @@ const authController = require("../controllers/auth.controller");
 
 const { sendOtpEmail } = require("../services/email.service");
 const generateOtp = require("../utils/otpGenerator");
+const protect = require("../middleware/auth.middleware");
 
 /*
 ----------------------------------------------------
@@ -67,6 +68,13 @@ router.post(
   ],
   authController.login
 );
+
+router.get("/me", protect, async (req, res) => {
+  res.json({
+    message: "You are authenticated ✅",
+    userId: req.user.id,
+  });
+});
 
 /*
 ----------------------------------------------------
