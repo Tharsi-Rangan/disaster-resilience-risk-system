@@ -1,8 +1,15 @@
 const router = require("express").Router();
+const { body } = require("express-validator");
+const authController = require("../controllers/auth.controller");
 
 const { sendOtpEmail } = require("../services/email.service");
 const generateOtp = require("../utils/otpGenerator");
 
+/*
+----------------------------------------------------
+TEST EMAIL ROUTE (Temporary - for testing only)
+----------------------------------------------------
+*/
 router.post("/test-email", async (req, res) => {
   try {
     const { email } = req.body;
@@ -15,12 +22,35 @@ router.post("/test-email", async (req, res) => {
       purpose: "Email Service Test",
     });
 
-    res.json({ message: "Test email sent", otp }); // otp only for testing now
+    // REMOVE otp from response before final submission
+    res.json({ message: "Test email sent" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+/*
+----------------------------------------------------
+REGISTER ROUTE
+----------------------------------------------------
+*/
+router.post(
+  "/register",
+  [
+    body("name").notEmpty().withMessage("Name is required"),
+    body("email").isEmail().withMessage("Valid email is required"),
+    body("password")
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters"),
+  ],
+  authController.register
+);
+
+/*
+----------------------------------------------------
+PING ROUTE
+----------------------------------------------------
+*/
 router.get("/ping", (req, res) => {
   res.json({ message: "Auth route working correctly ✅" });
 });
