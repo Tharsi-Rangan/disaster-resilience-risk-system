@@ -6,6 +6,29 @@ const { sendOtpEmail } = require("../services/email.service");
 const generateOtp = require("../utils/otpGenerator");
 const protect = require("../middleware/auth.middleware");
 
+const authMiddleware = require("../middleware/auth.middleware");
+const requireRole = require("../middleware/role.middleware");
+
+// Only logged-in users (any role)
+router.get("/protected", authMiddleware, (req, res) => {
+  res.json({ message: "Protected route ✅", user: req.user });
+});
+
+// Only ADMIN
+router.get("/admin-only", authMiddleware, requireRole("ADMIN"), (req, res) => {
+  res.json({ message: "Welcome ADMIN ✅", user: req.user });
+});
+
+// Only CONTRACTOR
+router.get(
+  "/contractor-only",
+  authMiddleware,
+  requireRole("CONTRACTOR"),
+  (req, res) => {
+    res.json({ message: "Welcome CONTRACTOR ✅", user: req.user });
+  }
+);
+
 /*
 ----------------------------------------------------
 TEST EMAIL ROUTE (Temporary - for testing only)
