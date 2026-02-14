@@ -76,6 +76,12 @@ router.get("/me", protect, async (req, res) => {
   });
 });
 
+// Forgot password
+router.post("/forgot-password", authController.forgotPassword);
+
+// Reset password
+router.post("/reset-password", authController.resetPassword);
+
 /*
 ----------------------------------------------------
 PING ROUTE
@@ -84,5 +90,7 @@ PING ROUTE
 router.get("/ping", (req, res) => {
   res.json({ message: "Auth route working correctly ✅" });
 });
+
+
 
 module.exports = router;
