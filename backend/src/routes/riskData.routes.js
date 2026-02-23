@@ -1,43 +1,45 @@
 const router = require("express").Router();
+const { body } = require("express-validator");
 
-const authMiddleware = require("../middleware/auth.middleware");
+const auth = require("../middleware/auth.middleware");
 const requireRole = require("../middleware/role.middleware");
 
-const {
-  fetchRiskDataForProject,
-  getLatestRiskData,
-  getRiskHistory,
-  deleteSnapshot,
-} = require("../controllers/riskData.controller");
+const controller = require("../controllers/riskData.controller");
 
-// CONTRACTOR + ADMIN can fetch/view
+// POST fetch snapshot (requires login)
 router.post(
   "/fetch/:projectId",
-  authMiddleware,
+  auth,
   requireRole("ADMIN", "CONTRACTOR"),
-  fetchRiskDataForProject
+  [
+    body("lat").isFloat({ min: -90, max: 90 }).withMessage("Valid lat is required"),
+    body("lng").isFloat({ min: -180, max: 180 }).withMessage("Valid lng is required"),
+  ],
+  controller.fetchRiskData
 );
 
+// GET latest
 router.get(
   "/:projectId/latest",
-  authMiddleware,
+  auth,
   requireRole("ADMIN", "CONTRACTOR"),
-  getLatestRiskData
+  controller.getLatest
 );
 
+// GET history
 router.get(
   "/:projectId/history",
-  authMiddleware,
+  auth,
   requireRole("ADMIN", "CONTRACTOR"),
-  getRiskHistory
+  controller.getHistory
 );
 
-// Only ADMIN can delete snapshot
+// DELETE snapshot (admin-only)
 router.delete(
   "/:snapshotId",
-  authMiddleware,
+  auth,
   requireRole("ADMIN"),
-  deleteSnapshot
+  controller.removeSnapshot
 );
 
 module.exports = router;

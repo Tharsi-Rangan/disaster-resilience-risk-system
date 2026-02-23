@@ -8,22 +8,28 @@ const riskSnapshotSchema = new mongoose.Schema(
       index: true,
     },
 
+    // Weather
     rainfall: { type: Number, default: 0 }, // mm (last 1h if available)
     windSpeed: { type: Number, default: 0 }, // m/s
     temperature: { type: Number, default: 0 }, // °C
+    humidity: { type: Number, default: 0 }, // %
+    cloudiness: { type: Number, default: 0 }, // %
 
-    earthquakeCount: { type: Number, default: 0 }, // count in last 7 days (radius based)
-    floodRiskIndex: { type: Number, default: 0 }, // 0-100 (derived)
+    // Earthquake
+    earthquakeCount: { type: Number, default: 0 },
 
-    fetchedAt: { type: Date, default: Date.now, index: true },
-    source: {
-      openWeather: { type: Boolean, default: true },
-      usgs: { type: Boolean, default: false },
+    // Simple index (NOT assessment score)
+    floodRiskIndex: { type: Number, default: 0 }, // 0 - 100
+
+    fetchedAt: {
+      type: Date,
+      default: Date.now,
+      index: true,
     },
-    meta: {
-      lat: Number,
-      lng: Number,
-      note: String,
+
+    source: {
+      type: String,
+      default: "OpenWeather/USGS",
     },
   },
   { timestamps: true }
