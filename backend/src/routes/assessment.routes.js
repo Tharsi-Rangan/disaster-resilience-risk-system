@@ -1,15 +1,12 @@
 const router = require("express").Router();
 const ctrl = require("../controllers/assessment.controller");
 
-const auth = require("../middleware/auth.middleware.js");
-const requireRole = require("../middleware/role.middleware.js");
+// TEMP: Auth disabled for local testing until auth module is finalized.
+// TODO: Re-enable auth + role middleware before final submission.
 
-// CONTRACTOR + ADMIN can run + view
-router.post("/run/:projectId", auth, requireRole("CONTRACTOR", "ADMIN"), ctrl.runAssessment);
-router.get("/:projectId/latest", auth, requireRole("CONTRACTOR", "ADMIN"), ctrl.getLatest);
-router.get("/:projectId/history", auth, requireRole("CONTRACTOR", "ADMIN"), ctrl.getHistory);
-
-// ADMIN only delete
-router.delete("/:id", auth, requireRole("ADMIN"), ctrl.deleteOne);
+router.post("/run/:projectId", ctrl.runAssessment);
+router.get("/:projectId/latest", ctrl.getLatest);
+router.get("/:projectId/history", ctrl.getHistory);
+router.delete("/:id", ctrl.deleteOne);
 
 module.exports = router;
