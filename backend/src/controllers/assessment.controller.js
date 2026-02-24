@@ -1,131 +1,133 @@
 const mongoose = require("mongoose");
 const RiskAssessment = require("../models/RiskAssessment");
-const { computeScores } = require("../services/assessment.service");
 
-const Assessment = require("../models/Assessment");
+// Helper function
+function computeRisk(weatherScore, floodScore, earthquakeScore) {
+  const w = Number(weatherScore);
+  const f = Number(floodScore);
+  const e = Number(earthquakeScore);
 
-// GET /api/assessments/:id
-exports.getOne = async (req, res) => {
-  try {
-    const item = await Assessment.findById(req.params.id);
-    if (!item) return res.status(404).json({ message: "Assessment not found" });
-    res.json(item);
-  } catch (e) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+  const riskScore = Math.round((w + f + e) / 3);
 
-// PUT /api/assessments/:id
-exports.updateOne = async (req, res) => {
-  try {
-    const allowed = ["weatherScore", "floodScore", "earthquakeScore", "notes"];
-    const updates = {};
-    for (const k of allowed) {
-      if (req.body[k] !== undefined) updates[k] = req.body[k];
-    }
+  let riskLevel = "LOW";
+  if (riskScore >= 70) riskLevel = "HIGH";
+  else if (riskScore >= 40) riskLevel = "MEDIUM";
 
-    // if you compute riskScore & riskLevel from factors, recompute here:
-    if (
-      updates.weatherScore !== undefined ||
-      updates.floodScore !== undefined ||
-      updates.earthquakeScore !== undefined
-    ) {
-      const weather = updates.weatherScore ?? 0;
-      const flood = updates.floodScore ?? 0;
-      const quake = updates.earthquakeScore ?? 0;
+  return { riskScore, riskLevel };
+}
 
-      const riskScore = Math.round((weather + flood + quake) / 3);
-      let riskLevel = "LOW";
-      if (riskScore >= 70) riskLevel = "HIGH";
-      else if (riskScore >= 40) riskLevel = "MEDIUM";
-
-      updates.riskScore = riskScore;
-      updates.riskLevel = riskLevel;
-    }
-
-    const updated = await Assessment.findByIdAndUpdate(req.params.id, updates, {
-      new: true,
-    });
-
-    if (!updated) return res.status(404).json({ message: "Assessment not found" });
-    res.json(updated);
-  } catch (e) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+// ✅ CREATE
 exports.runAssessment = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    if (!mongoose.isValidObjectId(projectId)) {
       return res.status(400).json({ message: "Invalid projectId" });
     }
 
-    // For now accept scores from body (simple demo)
-    // Later you can fetch from RiskData collection if your teammate finishes it.
-    const { weatherScore, floodScore, earthquakeScore, snapshotId } = req.body || {};
+    const { weatherScore = 0, floodScore = 0, earthquakeScore = 0 } = req.body;
 
-    const scores = computeScores({ weatherScore, floodScore, earthquakeScore });
+    const { riskScore, riskLevel } = computeRisk(
+      weatherScore,
+      floodScore,
+      earthquakeScore
+    );
 
     const created = await RiskAssessment.create({
       projectId,
-      snapshotId: snapshotId && mongoose.Types.ObjectId.isValid(snapshotId) ? snapshotId : null,
-      ...scores,
+      weatherScore,
+      floodScore,
+      earthquakeScore,
+      riskScore,
+      riskLevel,
     });
 
     return res.status(201).json(created);
   } catch (err) {
-    console.error("runAssessment:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
+// ✅ GET LATEST
 exports.getLatest = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return res.status(400).json({ message: "Invalid projectId" });
-    }
+    const latest = await RiskAssessment.findOne({ projectId })
+      .sort({ createdAt: -1 });
 
-    const latest = await RiskAssessment.findOne({ projectId }).sort({ createdAt: -1 });
-    return res.status(200).json(latest || null);
+    return res.json(latest);
   } catch (err) {
-    console.error("getLatest:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
+// ✅ GET HISTORY
 exports.getHistory = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return res.status(400).json({ message: "Invalid projectId" });
-    }
+    const history = await RiskAssessment.find({ projectId })
+      .sort({ createdAt: -1 });
 
-    const list = await RiskAssessment.find({ projectId }).sort({ createdAt: -1 });
-    return res.status(200).json(list);
+    return res.json(history);
   } catch (err) {
-    console.error("getHistory:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
+// ✅ GET ONE
+exports.getOne = async (req, res) => {
+  try {
+    const item = await RiskAssessment.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: "Not found" });
+
+    return res.json(item);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ✅ UPDATE
+exports.updateOne = async (req, res) => {
+  try {
+    const { weatherScore, floodScore, earthquakeScore } = req.body;
+
+    const existing = await RiskAssessment.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: "Not found" });
+
+    const ws = weatherScore ?? existing.weatherScore;
+    const fs = floodScore ?? existing.floodScore;
+    const es = earthquakeScore ?? existing.earthquakeScore;
+
+    const { riskScore, riskLevel } = computeRisk(ws, fs, es);
+
+    const updated = await RiskAssessment.findByIdAndUpdate(
+      req.params.id,
+      {
+        weatherScore: ws,
+        floodScore: fs,
+        earthquakeScore: es,
+        riskScore,
+        riskLevel,
+      },
+      { new: true }
+    );
+
+    return res.json(updated);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ✅ DELETE
 exports.deleteOne = async (req, res) => {
   try {
-    const { id } = req.params;
+    const deleted = await RiskAssessment.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Not found" });
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid assessment id" });
-    }
-
-    const deleted = await RiskAssessment.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ message: "Assessment not found" });
-
-    return res.status(200).json({ message: "Deleted", id });
+    return res.json({ message: "Deleted successfully" });
   } catch (err) {
-    console.error("deleteOne:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
