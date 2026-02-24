@@ -15,7 +15,17 @@ export const getAssessmentHistory = async (projectId) => {
   return res.data;
 };
 
-export const deleteAssessment = async (assessmentId) => {
-  const res = await api.delete(`/api/assessments/${assessmentId}`);
+export const getAssessmentById = async (id) => {
+  const res = await api.get(`/api/assessments/by-id/${id}`);
+  return res.data;
+};
+
+export const updateAssessment = async (id, payload) => {
+  const res = await api.put(`/api/assessments/${id}`, payload);
+  return res.data;
+};
+
+export const deleteAssessment = async (id) => {
+  const res = await api.delete(`/api/assessments/${id}`);
   return res.data;
 };
