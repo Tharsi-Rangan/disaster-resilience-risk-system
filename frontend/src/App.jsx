@@ -3,9 +3,14 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
+
 function App() {
   const [count, setCount] = useState(0)
-
+return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <h1 className="text-2xl font-semibold text-slate-900">Frontend is working</h1>
+    </div>
+  );
   return (
     <>
       <div>
