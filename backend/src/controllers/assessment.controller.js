@@ -2,6 +2,57 @@ const mongoose = require("mongoose");
 const RiskAssessment = require("../models/RiskAssessment");
 const { computeScores } = require("../services/assessment.service");
 
+const Assessment = require("../models/Assessment");
+
+// GET /api/assessments/:id
+exports.getOne = async (req, res) => {
+  try {
+    const item = await Assessment.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: "Assessment not found" });
+    res.json(item);
+  } catch (e) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// PUT /api/assessments/:id
+exports.updateOne = async (req, res) => {
+  try {
+    const allowed = ["weatherScore", "floodScore", "earthquakeScore", "notes"];
+    const updates = {};
+    for (const k of allowed) {
+      if (req.body[k] !== undefined) updates[k] = req.body[k];
+    }
+
+    // if you compute riskScore & riskLevel from factors, recompute here:
+    if (
+      updates.weatherScore !== undefined ||
+      updates.floodScore !== undefined ||
+      updates.earthquakeScore !== undefined
+    ) {
+      const weather = updates.weatherScore ?? 0;
+      const flood = updates.floodScore ?? 0;
+      const quake = updates.earthquakeScore ?? 0;
+
+      const riskScore = Math.round((weather + flood + quake) / 3);
+      let riskLevel = "LOW";
+      if (riskScore >= 70) riskLevel = "HIGH";
+      else if (riskScore >= 40) riskLevel = "MEDIUM";
+
+      updates.riskScore = riskScore;
+      updates.riskLevel = riskLevel;
+    }
+
+    const updated = await Assessment.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+    });
+
+    if (!updated) return res.status(404).json({ message: "Assessment not found" });
+    res.json(updated);
+  } catch (e) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 exports.runAssessment = async (req, res) => {
   try {
     const { projectId } = req.params;
