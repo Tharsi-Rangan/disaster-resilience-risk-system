@@ -6,13 +6,15 @@ import "./index.css";
 import DashboardLayout from "./layouts/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import AssessmentsPage from "./pages/AssessmentsPage";
+import ProjectAssessmentsPage from "./pages/ProjectAssessmentsPage";
 
 const router = createBrowserRouter([
   {
     element: <DashboardLayout />,
     children: [
       { path: "/", element: <DashboardHome /> },
-      { path: "/assessments", element: <AssessmentsPage /> },
+      { path: "/assessments", element: <AssessmentsPage /> }, // keep demo page
+      { path: "/projects/:projectId/assessments", element: <ProjectAssessmentsPage /> },
     ],
   },
 ]);
