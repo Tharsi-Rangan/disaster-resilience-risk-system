@@ -3,10 +3,9 @@ const cors = require("cors");
 require("dotenv").config();
 
 const authRoutes = require("./routes/auth.routes");
+const assessmentRoutes = require("./routes/assessment.routes");
 
 const app = express();
-const assessmentRoutes = require("./routes/assessment.routes");
-app.use("/api/assessments", assessmentRoutes);
 
 app.use(cors());
 app.use(express.json());
@@ -16,6 +15,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-//app.use("/api/assessments", require("./routes/assessment.routes"));//assesments
+app.use("/api/assessments", assessmentRoutes);
 
 module.exports = app;
