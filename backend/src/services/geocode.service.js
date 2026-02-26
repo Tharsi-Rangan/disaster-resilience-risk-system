@@ -1,6 +1,7 @@
 const axios = require("axios");
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+console.log("API KEY:", GOOGLE_MAPS_API_KEY);
 
 exports.getCoordinates = async (address) => {
   const encodedAddress = encodeURIComponent(address);
@@ -10,6 +11,7 @@ exports.getCoordinates = async (address) => {
   const data = response.data;
 
   if (data.status !== "OK" || data.results.length === 0) {
+    console.log("Google response:", data);
     throw new Error("Unable to geocode address");
   }
 
