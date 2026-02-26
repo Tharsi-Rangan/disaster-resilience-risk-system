@@ -1,9 +1,14 @@
 const { validationResult } = require("express-validator");
 const riskDataService = require("../services/riskData.service");
 
+/* ✅ NEWLY ADDED */
+const RiskProject = require("../models/RiskProject");
+/* ✅ END */
+
 /**
  * POST /api/risk-data/fetch/:projectId
- * Body: { lat, lng }  (until Project module is ready)
+ * Body: { lat, lng } (optional)
+ * If lat/lng not provided, it will use RiskProject location by projectId.
  */
 const fetchRiskData = async (req, res) => {
   try {
@@ -11,9 +16,25 @@ const fetchRiskData = async (req, res) => {
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { projectId } = req.params;
-    const { lat, lng } = req.body;
+
+    /* ✅ NEWLY ADDED: fallback to project location */
+    let { lat, lng } = req.body;
+
+    if (lat === undefined || lng === undefined) {
+      const project = await RiskProject.findById(projectId);
+      if (!project) return res.status(404).json({ message: "RiskProject not found" });
+
+      lat = project.location?.lat;
+      lng = project.location?.lng;
+
+      if (lat === undefined || lng === undefined) {
+        return res.status(400).json({ message: "Project location is missing" });
+      }
+    }
+    /* ✅ END */
 
     const snapshot = await riskDataService.createSnapshot({ projectId, lat, lng });
+
     return res.status(201).json({ message: "Risk data fetched ✅", snapshot });
   } catch (err) {
     return res
