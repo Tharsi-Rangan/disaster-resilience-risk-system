@@ -2,10 +2,9 @@ const axios = require("axios");
 const RiskSnapshot = require("../models/RiskSnapshot");
 const { fetchOpenWeather } = require("./weather.service");
 
-// optional helper: simple flood index heuristic
-function computeFloodRiskIndex({ rainfall, humidity, cloudiness }) {
-  // very simple heuristic 0-100 (acceptable for component 2)
-  // rainfall has highest weight
+// optional helper: simple flood index heuristic (0 - 100)
+// NOTE: This is NOT Component 3 scoring engine.
+function computeFloodRiskIndex({ rainfall = 0, humidity = 0, cloudiness = 0 }) {
   const rainScore = Math.min(rainfall * 20, 100); // 5mm => 100
   const humidityScore = Math.min((humidity / 100) * 30, 30);
   const cloudScore = Math.min((cloudiness / 100) * 20, 20);
@@ -15,7 +14,7 @@ function computeFloodRiskIndex({ rainfall, humidity, cloudiness }) {
 }
 
 async function fetchEarthquakeCount({ lat, lng }) {
-  // USGS past 30 days, radius ~200km (tweak if needed)
+  // USGS past 30 days, radius ~200km
   const end = new Date();
   const start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
@@ -32,7 +31,7 @@ async function fetchEarthquakeCount({ lat, lng }) {
       maxradiuskm: 200,
       minmagnitude: 3,
     },
-    timeout: 10000,
+    timeout: 20000, // increased timeout to reduce failures
   });
 
   return data?.metadata?.count ?? (data?.features?.length ?? 0);
@@ -49,29 +48,54 @@ async function canFetchNow(projectId, cooldownMinutes = 5) {
 }
 
 async function createSnapshot({ projectId, lat, lng }) {
-  const allowed = await canFetchNow(projectId, Number(process.env.RISK_FETCH_COOLDOWN_MIN || 5));
+  // Safety validation (in case controller didn’t pass proper values)
+  if (typeof lat !== "number" || typeof lng !== "number") {
+    const err = new Error("Valid lat/lng required to fetch risk data");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  // cooldown interval from env (matches your .env key)
+  const cooldown = Number(process.env.RISKDATA_MIN_FETCH_INTERVAL_MIN || 5);
+  const allowed = await canFetchNow(projectId, cooldown);
+
   if (!allowed) {
     const err = new Error("Fetch cooldown active. Try again later.");
     err.statusCode = 429;
     throw err;
   }
 
+  // Weather (OpenWeather or fallback provider depending on your weather.service.js)
   const weather = await fetchOpenWeather({ lat, lng });
-  const earthquakeCount = await fetchEarthquakeCount({ lat, lng });
+
+  // Earthquake count (fallback to 0 if USGS is down)
+  let earthquakeCount = 0;
+  try {
+    earthquakeCount = await fetchEarthquakeCount({ lat, lng });
+  } catch (e) {
+    earthquakeCount = 0;
+  }
 
   const floodRiskIndex = computeFloodRiskIndex({
-    rainfall: weather.rainfall,
-    humidity: weather.humidity,
-    cloudiness: weather.cloudiness,
+    rainfall: weather?.rainfall ?? 0,
+    humidity: weather?.humidity ?? 0,
+    cloudiness: weather?.cloudiness ?? 0,
   });
 
   const snapshot = await RiskSnapshot.create({
     projectId,
-    ...weather,
+    rainfall: weather?.rainfall ?? 0,
+    windSpeed: weather?.windSpeed ?? 0,
+    temperature: weather?.temperature ?? 0,
+    humidity: weather?.humidity ?? 0,
+    cloudiness: weather?.cloudiness ?? 0,
+
     earthquakeCount,
     floodRiskIndex,
     fetchedAt: new Date(),
-    source: "OpenWeather/USGS",
+
+    // show which weather provider was used (good for viva)
+    source: `${weather?.source || "OpenWeather"}/USGS`,
   });
 
   return snapshot;
@@ -94,4 +118,7 @@ module.exports = {
   getLatestSnapshot,
   getSnapshotHistory,
   deleteSnapshot,
+
+  // optional export (useful for unit tests)
+  computeFloodRiskIndex,
 };
