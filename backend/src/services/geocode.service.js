@@ -7,6 +7,9 @@ exports.getCoordinates = async (address) => {
   const encodedAddress = encodeURIComponent(address);
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}`;
 
+console.log("Using API key:", GOOGLE_MAPS_API_KEY);
+console.log("Address to geocode:", address);
+
   const response = await axios.get(url);
   const data = response.data;
 
