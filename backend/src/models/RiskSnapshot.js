@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 
-const riskSnapshotSchema = new mongoose.Schema(
+const RiskSnapshotSchema = new mongoose.Schema(
   {
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
       required: true,
       index: true,
     },
@@ -35,4 +36,7 @@ const riskSnapshotSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("RiskSnapshot", riskSnapshotSchema);
+// For latest snapshot queries + history
+RiskSnapshotSchema.index({ projectId: 1, createdAt: -1 });
+
+module.exports = mongoose.model("RiskSnapshot", RiskSnapshotSchema);

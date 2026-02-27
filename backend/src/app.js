@@ -8,6 +8,7 @@ const projectRoutes = require("./routes/project.routes");
 /* ✅ NEWLY ADDED: risk-data routes (Component 2) */
 const riskDataRoutes = require("./routes/riskData.routes");
 /* ✅ END */
+const assessmentRoutes = require("./routes/assessment.routes");
 
 const app = express();
 
@@ -39,5 +40,7 @@ app.use((err, req, res, next) => {
   });
 });
 /* ✅ END */
+
+app.use("/api/assessments", assessmentRoutes);
 
 module.exports = app;
