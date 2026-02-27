@@ -1,21 +1,38 @@
-/*
-  This service is responsible for generating
-  mitigation recommendations based on risk level.
-*/
+const { geminiGenerateMitigation } = require("./ai/gemini.service");
+
+const normalizeRecommendations = (recs = []) => {
+  return recs.map((r) => ({
+    title: r.title,
+    details: r.details,
+    category: r.category || "GENERAL",
+    status: "PENDING",
+  }));
+};
 
 const buildMitigationPlan = async (assessmentData) => {
-  const { riskLevel, floodScore, earthquakeScore, weatherScore } = assessmentData;
+  const { riskLevel, riskScore, floodScore, earthquakeScore, weatherScore } = assessmentData;
 
+  const provider = (process.env.AI_PROVIDER || "NONE").toUpperCase();
+
+  // 1) Try AI first (if enabled)
+  if (provider === "GEMINI") {
+    try {
+      const ai = await geminiGenerateMitigation({ riskLevel, riskScore, floodScore, earthquakeScore, weatherScore });
+
+      return {
+        priorityLevel: ai.priorityLevel || riskLevel,
+        recommendations: normalizeRecommendations(ai.recommendations),
+        aiProvider: "GEMINI",
+      };
+    } catch (err) {
+      // fallback will handle it
+      console.log("Gemini failed, falling back to rule-based:", err.message);
+    }
+  }
+
+  // 2) Fallback: rule-based logic (always works)
   const recommendations = [];
 
-  /*
-    Rule-based logic:
-    If risk is HIGH → stronger actions
-    If MEDIUM → moderate actions
-    If LOW → preventive actions
-  */
-
-  // FLOOD mitigation
   if (floodScore > 20) {
     recommendations.push({
       title: "Improve Drainage System",
@@ -25,7 +42,6 @@ const buildMitigationPlan = async (assessmentData) => {
     });
   }
 
-  // EARTHQUAKE mitigation
   if (earthquakeScore > 20) {
     recommendations.push({
       title: "Reinforce Structural Design",
@@ -35,7 +51,6 @@ const buildMitigationPlan = async (assessmentData) => {
     });
   }
 
-  // WEATHER mitigation
   if (weatherScore > 15) {
     recommendations.push({
       title: "Weatherproof Infrastructure",
@@ -45,7 +60,6 @@ const buildMitigationPlan = async (assessmentData) => {
     });
   }
 
-  // General fallback if no specific risks
   if (recommendations.length === 0) {
     recommendations.push({
       title: "General Risk Monitoring",
