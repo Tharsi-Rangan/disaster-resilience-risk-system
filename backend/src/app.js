@@ -5,6 +5,10 @@ require("dotenv").config();
 const authRoutes = require("./routes/auth.routes");
 const projectRoutes = require("./routes/project.routes");
 
+/* ✅ NEWLY ADDED: risk-data routes (Component 2) */
+const riskDataRoutes = require("./routes/riskData.routes");
+/* ✅ END */
+
 const app = express();
 
 app.use(cors());
@@ -16,5 +20,24 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
+
+/*  NEWLY ADDED: mount risk-data endpoints */
+app.use("/api/risk-data", riskDataRoutes);
+/*  END */
+
+/*  NEWLY ADDED: 404 handler */
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+/*  END */
+
+/*  NEWLY ADDED: global error handler */
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.statusCode || 500).json({
+    message: err.message || "Server error",
+  });
+});
+/* ✅ END */
 
 module.exports = app;
