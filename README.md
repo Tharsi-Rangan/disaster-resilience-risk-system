@@ -111,39 +111,55 @@ Roles:
 
 ## 🔄 REST API Design
 
-### Auth Routes
+🔐 Auth Routes
 
-* POST /api/auth/register
-* POST /api/auth/verify-email
-* POST /api/auth/login
-* POST /api/auth/forgot-password
-* POST /api/auth/reset-password
+POST /api/auth/register
 
-### Project Routes
+POST /api/auth/verify-email
 
-* POST /api/projects
-* GET /api/projects
-* GET /api/projects/:id
-* PUT /api/projects/:id
-* DELETE /api/projects/:id
+POST /api/auth/login
 
-### Risk Data Routes
+POST /api/auth/forgot-password
 
-* POST /api/risk-data/fetch/:projectId
-* GET /api/risk-data/:projectId/latest
-* GET /api/risk-data/:projectId/history
+POST /api/auth/reset-password
 
-### Assessment Routes
+📁 Project Routes
 
-* POST /api/assessments/run/:projectId
-* GET /api/assessments/:projectId/latest
-* GET /api/assessments/:projectId/history
+POST /api/projects
 
-### Mitigation Routes
+GET /api/projects
 
-* POST /api/mitigation/generate/:projectId
-* GET /api/mitigation/:projectId/latest
-* GET /api/mitigation/:projectId/history
+GET /api/projects/:id
+
+PUT /api/projects/:id
+
+DELETE /api/projects/:id
+
+🌍 Risk Data Routes
+
+POST /api/risk-data/fetch/:projectId
+
+GET /api/risk-data/:projectId/latest
+
+GET /api/risk-data/:projectId/history
+
+📊 Assessment Routes
+
+POST /api/assessments/run/:projectId
+
+GET /api/assessments/:projectId/latest
+
+GET /api/assessments/:projectId/history
+
+🛡 Mitigation Routes
+
+POST /api/mitigation/generate/:projectId
+
+GET /api/mitigation/:projectId/latest
+
+GET /api/mitigation/:projectId/history
+
+DELETE /api/mitigation/:id
 
 All routes follow standard HTTP status conventions:
 
