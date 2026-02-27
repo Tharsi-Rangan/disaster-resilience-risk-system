@@ -9,6 +9,7 @@ const projectRoutes = require("./routes/project.routes");
 const riskDataRoutes = require("./routes/riskData.routes");
 /* ✅ END */
 const assessmentRoutes = require("./routes/assessment.routes");
+const mitigationRoutes = require("./routes/mitigation.routes");
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/mitigation", mitigationRoutes);
 
 /*  NEWLY ADDED: mount risk-data endpoints */
 app.use("/api/risk-data", riskDataRoutes);
