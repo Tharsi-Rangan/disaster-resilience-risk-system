@@ -9,16 +9,17 @@ const RiskSnapshotSchema = new mongoose.Schema(
       index: true,
     },
 
-    // store only what Component 3 needs
-    lat: { type: Number, required: true },
-    lng: { type: Number, required: true },
+    // Component 2 fields (match DB)
+    rainfall: { type: Number, default: 0 },       // mm
+    windSpeed: { type: Number, default: 0 },      // m/s
+    temperature: { type: Number, default: 0 },    // °C
+    humidity: { type: Number, default: 0 },       // %
+    cloudiness: { type: Number, default: 0 },     // %
+    earthquakeCount: { type: Number, default: 0 },// count
+    floodRiskIndex: { type: Number, default: 0 }, // 0..100 (already computed by C2)
 
-    rainfallMm: { type: Number, default: 0 },     // 0..?
-    windSpeedMs: { type: Number, default: 0 },    // m/s
-    floodLikelihood: { type: Number, default: 0 },// 0..100
-
-    // optional field if you add later
-    earthquakeIndex: { type: Number, default: 0 },// 0..100
+    fetchedAt: { type: Date, default: Date.now },
+    source: { type: String, default: "OpenMeteo/USGS" },
   },
   { timestamps: true }
 );

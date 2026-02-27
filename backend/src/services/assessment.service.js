@@ -13,11 +13,10 @@ function levelFromScore(score) {
 
 // Sub-score formulas (simple + explainable in viva)
 function calcWeatherScore(snapshot) {
-  // rainfall + wind → risk
-  const rain = Number(snapshot.rainfallMm || 0);
-  const wind = Number(snapshot.windSpeedMs || 0);
+  // Component 2 fields
+  const rain = Number(snapshot.rainfall || 0);
+  const wind = Number(snapshot.windSpeed || 0);
 
-  // Normalize into 0..100
   const rainScore = clamp((rain / 50) * 100); // 50mm => 100
   const windScore = clamp((wind / 25) * 100); // 25 m/s => 100
 
@@ -25,8 +24,9 @@ function calcWeatherScore(snapshot) {
 }
 
 function calcEarthquakeScore(snapshot) {
-  // If snapshot has earthquakeIndex, use it. Else keep small default.
-  return clamp(snapshot.earthquakeIndex || 10);
+  const count = Number(snapshot.earthquakeCount || 0);
+  // 0 quakes => 0, 10+ quakes => 100 (simple viva mapping)
+  return clamp(Math.round((count / 10) * 100));
 }
 
 function adjustFloodByElevation(floodBase, elevation) {
@@ -58,14 +58,22 @@ exports.runForProject = async (projectId) => {
     throw err;
   }
 
-  // Flood base from snapshot
-  const floodBase = clamp(snapshot.floodLikelihood || 0);
+  // Flood base from Component 2 snapshot
+  const floodBase = clamp(snapshot.floodRiskIndex || 0);
 
-  // Third-party elevation
-  const elevation = await getElevation(snapshot.lat, snapshot.lng);
+  // Elevation using Project location (snapshot doesn't store lat/lng)
+  const project = await Project.findById(projectId).select("location");
+  const lat = project?.location?.lat;
+  const lng = project?.location?.lng;
+
+  const elevation =
+    typeof lat === "number" && typeof lng === "number"
+      ? await getElevation(lat, lng)
+      : null;
+
   const floodScore = adjustFloodByElevation(floodBase, elevation);
 
-  // Other subscores
+  // Other subscores from Component 2 fields
   const weatherScore = calcWeatherScore(snapshot);
   const earthquakeScore = calcEarthquakeScore(snapshot);
 
@@ -87,8 +95,8 @@ exports.runForProject = async (projectId) => {
     modelVersion: "v1",
   });
 
-  // Optional project status update
-  await updateProjectStatus(projectId, riskLevel);
+  // Keep status update OFF to avoid conflict with the status component
+  // await updateProjectStatus(projectId, riskLevel);
 
   return { created, usedSnapshot: snapshot._id, elevation };
 };
