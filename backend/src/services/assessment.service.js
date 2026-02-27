@@ -1,3 +1,5 @@
+// backend/src/services/assessment.service.js
+
 const RiskAssessment = require("../models/RiskAssessment");
 const RiskSnapshot = require("../models/RiskSnapshot");
 const Project = require("../models/Project");
@@ -5,34 +7,41 @@ const { getElevation } = require("./elevation.service");
 
 const clamp = (n) => Math.max(0, Math.min(100, Number(n || 0)));
 
+// Risk level thresholds (viva-friendly)
 function levelFromScore(score) {
   if (score >= 70) return "HIGH";
   if (score >= 40) return "MEDIUM";
   return "LOW";
 }
 
-// Sub-score formulas (simple + explainable in viva)
+// Weather score from Component 2 snapshot fields
 function calcWeatherScore(snapshot) {
-  // Component 2 fields
   const rain = Number(snapshot.rainfall || 0);
   const wind = Number(snapshot.windSpeed || 0);
 
+  // Normalize into 0..100
   const rainScore = clamp((rain / 50) * 100); // 50mm => 100
   const windScore = clamp((wind / 25) * 100); // 25 m/s => 100
 
   return clamp(Math.round(rainScore * 0.6 + windScore * 0.4));
 }
 
+// Earthquake score from Component 2 snapshot fields
 function calcEarthquakeScore(snapshot) {
   const count = Number(snapshot.earthquakeCount || 0);
-  // 0 quakes => 0, 10+ quakes => 100 (simple viva mapping)
+  // 0 quakes => 0, 10+ quakes => 100 (simple mapping)
   return clamp(Math.round((count / 10) * 100));
 }
 
+// Flood score base comes from Component 2 floodRiskIndex (0..100)
+function calcFloodBase(snapshot) {
+  return clamp(snapshot.floodRiskIndex || 0);
+}
+
+// Elevation adjustment (3rd-party) for flood risk
 function adjustFloodByElevation(floodBase, elevation) {
   if (typeof elevation !== "number") return clamp(floodBase);
 
-  // low elevation => higher flood risk
   let bonus = 0;
   if (elevation < 20) bonus = 15;
   else if (elevation < 100) bonus = 8;
@@ -44,9 +53,8 @@ async function findLatestSnapshot(projectId) {
   return RiskSnapshot.findOne({ projectId }).sort({ createdAt: -1 });
 }
 
+// Keep OFF by default to avoid conflict with “Status Update” component
 async function updateProjectStatus(projectId, riskLevel) {
-  // only Assessment service does this (your rule)
-  if (!Project) return;
   await Project.findByIdAndUpdate(projectId, { status: riskLevel });
 }
 
@@ -58,24 +66,30 @@ exports.runForProject = async (projectId) => {
     throw err;
   }
 
-  // Flood base from Component 2 snapshot
-  const floodBase = clamp(snapshot.floodRiskIndex || 0);
-
-  // Elevation using Project location (snapshot doesn't store lat/lng)
+  // Get Project location for elevation (snapshot doesn't store lat/lng)
   const project = await Project.findById(projectId).select("location");
+  if (!project) {
+    const err = new Error("Project not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
   const lat = project?.location?.lat;
   const lng = project?.location?.lng;
 
-  const elevation =
-    typeof lat === "number" && typeof lng === "number"
-      ? await getElevation(lat, lng)
-      : null;
+  const hasCoords =
+    typeof lat === "number" &&
+    typeof lng === "number" &&
+    !(lat === 0 && lng === 0);
 
-  const floodScore = adjustFloodByElevation(floodBase, elevation);
+  const elevation = hasCoords ? await getElevation(lat, lng) : null;
 
-  // Other subscores from Component 2 fields
+  // Subscores from Component 2 snapshot fields
   const weatherScore = calcWeatherScore(snapshot);
   const earthquakeScore = calcEarthquakeScore(snapshot);
+
+  const floodBase = calcFloodBase(snapshot);
+  const floodScore = adjustFloodByElevation(floodBase, elevation);
 
   // Weighted total (30/40/30)
   const riskScore = clamp(
@@ -95,7 +109,7 @@ exports.runForProject = async (projectId) => {
     modelVersion: "v1",
   });
 
-  // Keep status update OFF to avoid conflict with the status component
+  // ✅ Keep disabled to avoid overlap with the separate status module
   // await updateProjectStatus(projectId, riskLevel);
 
   return { created, usedSnapshot: snapshot._id, elevation };
