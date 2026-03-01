@@ -1,5 +1,6 @@
 const MitigationPlan = require("../models/MitigationPlan");
 const { buildMitigationPlan } = require("../services/mitigation.service");
+const RiskAssessment = require("../models/RiskAssessment");
 
 // POST /api/mitigation/generate/:projectId
 const generateMitigationPlan = async (req, res) => {
@@ -9,25 +10,34 @@ const generateMitigationPlan = async (req, res) => {
     if (!projectId) {
       return res.status(400).json({ message: "projectId is required" });
     }
+    const assessment = await RiskAssessment.findOne({ projectId }).sort({
+      createdAt: -1,
+    });
 
-    const mockAssessment = {
-      riskLevel: "HIGH",
-      riskScore: 82,
-      floodScore: 30,
-      earthquakeScore: 40,
-      weatherScore: 12,
-    };
+    if (!assessment) {
+      return res.status(404).json({
+        message:
+          "No risk assessment found for this project. Run assessment first.",
+      });
+    }
 
-    const planData = await buildMitigationPlan(mockAssessment);
+    const planData = await buildMitigationPlan({
+      riskScore: assessment.riskScore,
+      riskLevel: assessment.riskLevel,
+      floodScore: assessment.floodScore,
+      earthquakeScore: assessment.earthquakeScore,
+      weatherScore: assessment.weatherScore,
+    });
 
     const created = await MitigationPlan.create({
       projectId,
-      assessmentId: null,
+      assessmentId: assessment._id,
+      snapshotId: assessment.snapshotId || null, // only works if schema has snapshotId
       priorityLevel: planData.priorityLevel,
       recommendations: planData.recommendations,
       createdBy: req.user._id,
       aiProvider: planData.aiProvider || "NONE",
-      promptVersion: "v1",
+      promptVersion: planData.promptVersion || "v1",
     });
 
     return res.status(201).json({
@@ -44,10 +54,14 @@ const getLatestMitigationPlan = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const latest = await MitigationPlan.findOne({ projectId }).sort({ createdAt: -1 });
+    const latest = await MitigationPlan.findOne({ projectId }).sort({
+      createdAt: -1,
+    });
 
     if (!latest) {
-      return res.status(404).json({ message: "No mitigation plan found for this project" });
+      return res
+        .status(404)
+        .json({ message: "No mitigation plan found for this project" });
     }
 
     return res.json({
@@ -64,7 +78,9 @@ const getMitigationHistory = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const plans = await MitigationPlan.find({ projectId }).sort({ createdAt: -1 });
+    const plans = await MitigationPlan.find({ projectId }).sort({
+      createdAt: -1,
+    });
 
     return res.json({
       message: "Mitigation history retrieved successfully ✅",
@@ -99,5 +115,5 @@ module.exports = {
   generateMitigationPlan,
   getLatestMitigationPlan,
   getMitigationHistory,
-  deleteMitigationPlan
+  deleteMitigationPlan,
 };
