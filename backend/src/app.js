@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/mitigation", mitigationRoutes);
-
+app.use("/api/assessments", assessmentRoutes);
 /*  NEWLY ADDED: mount risk-data endpoints */
 app.use("/api/risk-data", riskDataRoutes);
 /*  END */
@@ -43,6 +43,6 @@ app.use((err, req, res, next) => {
 });
 /* ✅ END */
 
-app.use("/api/assessments", assessmentRoutes);
+
 
 module.exports = app;

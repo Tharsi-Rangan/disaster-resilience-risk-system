@@ -1,5 +1,5 @@
 // backend/src/utils/assessment.calc.js
-
+//core calculation logic for risk assessment scores and levels, based on Component 2 snapshots and elevation data
 const clamp = (n) => Math.max(0, Math.min(100, Number(n || 0)));
 
 const levelFromScore = (score) => {

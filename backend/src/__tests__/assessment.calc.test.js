@@ -1,3 +1,5 @@
+// backend/src/__tests__/assessment.calc.test.js
+// Unit tests for the core calculation logic in assessment.calc.js, covering weather, flood, earthquake scores and overall risk score
 const {
   clamp,
   levelFromScore,
