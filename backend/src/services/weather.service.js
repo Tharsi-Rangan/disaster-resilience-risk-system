@@ -1,12 +1,12 @@
 const axios = require("axios");
 
-/* ✅ NEWLY ADDED: allow overriding base URLs via .env (optional) */
+/*  allow overriding base URLs via .env (optional) */
 const OPENWEATHER_BASE =
   process.env.OPENWEATHER_BASE_URL || "https://api.openweathermap.org/data/2.5/weather";
 
 const OPEN_METEO_BASE =
   process.env.OPEN_METEO_BASE_URL || "https://api.open-meteo.com/v1/forecast";
-/* ✅ END */
+
 
 function toNumber(value, fallback = 0) {
   const n = Number(value);
@@ -28,7 +28,7 @@ async function fetchFromOpenWeather({ lat, lng }) {
 
   const { data } = await axios.get(OPENWEATHER_BASE, {
     params: { lat, lon: lng, appid: apiKey, units: "metric" },
-    timeout: 20000, // ✅ NEWLY ADDED: increased timeout
+    timeout: 20000, //  increased timeout
   });
 
   const rainfallRaw =
@@ -52,7 +52,7 @@ async function fetchFromOpenMeteo({ lat, lng }) {
       current:
         "temperature_2m,precipitation,wind_speed_10m,relative_humidity_2m,cloud_cover",
     },
-    timeout: 20000, // ✅ NEWLY ADDED: increased timeout
+    timeout: 20000, //  increased timeout
   });
 
   const c = data?.current || {};
@@ -68,7 +68,7 @@ async function fetchFromOpenMeteo({ lat, lng }) {
 }
 
 /**
- * Main function used by riskData.service.js
+ * Main function used by riskData.service.js 
  * Tries OpenWeather first, falls back to Open-Meteo on error.
  */
 async function fetchOpenWeather({ lat, lng }) {
