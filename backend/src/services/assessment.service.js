@@ -1,5 +1,5 @@
 // backend/src/services/assessment.service.js
-
+//core logic for risk assessment calculations and database interactions
 const RiskAssessment = require("../models/RiskAssessment");
 const RiskSnapshot = require("../models/RiskSnapshot");
 const Project = require("../models/Project");

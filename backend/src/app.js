@@ -24,11 +24,12 @@ app.use("/api/risk-data", riskDataRoutes);
 app.use("/api/assessments", assessmentRoutes);
 app.use("/api/mitigation", mitigationRoutes);
 
+/* 404 handler */
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-/* Global error handler  */
+/* Global error handler */
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.statusCode || 500).json({
