@@ -1,4 +1,5 @@
 const { geminiGenerateMitigation } = require("./ai/gemini.service");
+const RiskAssessment = require("../models/RiskAssessment");
 
 const normalizeRecommendations = (recs = []) => {
   return recs.map((r) => ({
