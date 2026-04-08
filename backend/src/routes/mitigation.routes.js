@@ -18,6 +18,13 @@ router.get(
   getMitigationHistory
 );
 
+router.get(
+  "/:projectId/latest",
+  authMiddleware,
+  requireRole("ADMIN", "CONTRACTOR"),
+  getLatestMitigationPlan
+);
+
 router.delete(
   "/:id",
   authMiddleware,

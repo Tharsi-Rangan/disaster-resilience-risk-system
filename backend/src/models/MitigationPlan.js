@@ -9,10 +9,12 @@ const recommendationSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      trim: true,
     },
     details: {
       type: String,
       required: true,
+      trim: true,
     },
     category: {
       type: String,
@@ -37,11 +39,19 @@ const mitigationPlanSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
       required: true,
+      index: true,
     },
 
     assessmentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "RiskAssessment",
+      required: true,
+    },
+
+    snapshotId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RiskSnapshot",
+      default: null,
     },
 
     priorityLevel: {
@@ -74,5 +84,8 @@ const mitigationPlanSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+/* Compound index for faster retrieval of latest mitigation per project */
+mitigationPlanSchema.index({ projectId: 1, createdAt: -1 });
 
 module.exports = mongoose.model("MitigationPlan", mitigationPlanSchema);

@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "jest --runInBand",
+    "test":  "set NODE_ENV=test && jest --detectOpenHandles --forceExit",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
+
+   "jest": {
+    "testEnvironment": "node"
+  },
+
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -35,4 +40,6 @@
       "<rootDir>/tests/setup.js"
     ]
   }
+
+  
 }
