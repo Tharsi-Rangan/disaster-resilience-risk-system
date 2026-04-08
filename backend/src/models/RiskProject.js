@@ -10,7 +10,7 @@ const riskProjectSchema = new mongoose.Schema(
       lng: { type: Number, required: true },
     },
 
-    // optional, can be used later when project module is integrated ...
+    // optional, can be used later when project module is integrated 
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
