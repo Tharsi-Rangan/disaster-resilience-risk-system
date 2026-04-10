@@ -8,15 +8,22 @@ const protect = require("../middleware/auth.middleware");
 
 const authMiddleware = require("../middleware/auth.middleware");
 const requireRole = require("../middleware/role.middleware");
+const safeUser = require("../utils/safeUser");
 
 // Only logged-in users (any role)
 router.get("/protected", authMiddleware, (req, res) => {
-  res.json({ message: "Protected route ✅", user: req.user });
+  res.json({
+    message: "Protected route ✅",
+    user: safeUser(req.user),
+  });
 });
 
 // Only ADMIN
 router.get("/admin-only", authMiddleware, requireRole("ADMIN"), (req, res) => {
-  res.json({ message: "Welcome ADMIN ✅", user: req.user });
+  res.json({
+    message: "Welcome ADMIN ✅",
+    user: safeUser(req.user),
+  });
 });
 
 // Only CONTRACTOR
@@ -25,7 +32,10 @@ router.get(
   authMiddleware,
   requireRole("CONTRACTOR"),
   (req, res) => {
-    res.json({ message: "Welcome CONTRACTOR ✅", user: req.user });
+    res.json({
+      message: "Welcome CONTRACTOR ✅",
+      user: safeUser(req.user),
+    });
   }
 );
 
@@ -92,10 +102,16 @@ router.post(
   authController.login
 );
 
+/*
+----------------------------------------------------
+ME ROUTE
+----------------------------------------------------
+*/
 router.get("/me", protect, async (req, res) => {
   res.json({
     message: "You are authenticated ✅",
-    userId: req.user.id,
+    userId: req.user._id,
+    user: safeUser(req.user),
   });
 });
 
@@ -113,7 +129,5 @@ PING ROUTE
 router.get("/ping", (req, res) => {
   res.json({ message: "Auth route working correctly ✅" });
 });
-
-
 
 module.exports = router;
