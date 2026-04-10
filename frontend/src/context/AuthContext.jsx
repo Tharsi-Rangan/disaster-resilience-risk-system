@@ -1,5 +1,6 @@
 import { createContext, useEffect, useMemo, useState } from 'react'
 import { storage } from '../utils/storage'
+import { authService } from '../services/authService'
 
 export const AuthContext = createContext(null)
 
@@ -9,15 +10,32 @@ export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true)
 
   useEffect(() => {
-    const savedToken = storage.getToken()
-    const savedUser = storage.getUser()
+    const restoreSession = async () => {
+      const savedToken = storage.getToken()
 
-    if (savedToken && savedUser) {
-      setToken(savedToken)
-      setUser(savedUser)
+      if (!savedToken) {
+        setAuthLoading(false)
+        return
+      }
+
+      try {
+        setToken(savedToken)
+
+        const response = await authService.getMe()
+        const restoredUser = response.user
+
+        setUser(restoredUser)
+        storage.setUser(restoredUser)
+      } catch (error) {
+        setUser(null)
+        setToken(null)
+        storage.clearAuth()
+      } finally {
+        setAuthLoading(false)
+      }
     }
 
-    setAuthLoading(false)
+    restoreSession()
   }, [])
 
   const login = (userData, authToken) => {
