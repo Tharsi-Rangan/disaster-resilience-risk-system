@@ -145,3 +145,5 @@ vite.config.ts.timestamp-*
 
 # optional local archives
 *.zip
+
+frontend/.vite/
