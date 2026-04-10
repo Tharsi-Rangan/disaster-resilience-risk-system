@@ -1,8 +1,25 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
+
+function getPageTitle(pathname) {
+  if (pathname.startsWith('/admin/mitigations')) return 'Admin Mitigations'
+  if (pathname.startsWith('/admin/assessments')) return 'Admin Assessments'
+  if (pathname.startsWith('/admin/projects')) return 'Admin Projects'
+  if (pathname.startsWith('/admin')) return 'Admin Dashboard'
+  if (pathname.startsWith('/projects/new')) return 'Create Project'
+  if (pathname.includes('/risk-data')) return 'Risk Data'
+  if (pathname.includes('/assessment')) return 'Risk Assessment'
+  if (pathname.includes('/mitigation')) return 'Mitigation Planning'
+  if (pathname.includes('/edit')) return 'Edit Project'
+  if (pathname.startsWith('/projects/')) return 'Project Details'
+  if (pathname.startsWith('/projects')) return 'Projects'
+  if (pathname.startsWith('/dashboard')) return 'Dashboard'
+  return 'ResiliGuard'
+}
 
 function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, logout } = useAuth()
 
   const handleLogout = () => {
@@ -14,8 +31,12 @@ function Navbar() {
     <header className="border-b border-slate-200 bg-white px-6 py-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Frontend Foundation</h2>
-          <p className="text-sm text-slate-500">Shared layout for contractor and admin flows</p>
+          <h2 className="text-lg font-semibold text-slate-900">
+            {getPageTitle(location.pathname)}
+          </h2>
+          <p className="text-sm text-slate-500">
+            Disaster Resilience Risk System
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
