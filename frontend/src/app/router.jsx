@@ -1,67 +1,66 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
-import AppShell from '../components/layout/AppShell'
-import LoginPage from '../pages/auth/LoginPage'
-import RegisterPage from '../pages/auth/RegisterPage'
-import VerifyEmailPage from '../pages/auth/VerifyEmailPage'
-import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage'
-import ResetPasswordPage from '../pages/auth/ResetPasswordPage'
-import DashboardPage from '../pages/contractor/DashboardPage'
-import ProjectsPage from '../pages/contractor/ProjectsPage'
-import ProjectCreatePage from '../pages/contractor/ProjectCreatePage'
-import ProjectDetailsPage from '../pages/contractor/ProjectDetailsPage'
-import ProjectEditPage from '../pages/contractor/ProjectEditPage'
-import RiskDataPage from '../pages/contractor/RiskDataPage'
-import AssessmentPage from '../pages/contractor/AssessmentPage'
-import MitigationPage from '../pages/contractor/MitigationPage'
-import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
-import AdminProjectsPage from '../pages/admin/AdminProjectsPage'
-import AdminAssessmentsPage from '../pages/admin/AdminAssessmentsPage'
-import AdminMitigationsPage from '../pages/admin/AdminMitigationsPage'
-import UnauthorizedPage from '../pages/UnauthorizedPage'
-import NotFoundPage from '../pages/NotFoundPage'
-import ProtectedRoute from '../routes/ProtectedRoute'
-import RoleRoute from '../routes/RoleRoute'
-import { USER_ROLES } from '../utils/constants'
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import AppShell from "../components/layout/AppShell";
+import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import VerifyEmailPage from "../pages/auth/VerifyEmailPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
+import DashboardPage from "../pages/contractor/DashboardPage";
+import ProjectsPage from "../pages/contractor/ProjectsPage";
+import ProjectCreatePage from "../pages/contractor/ProjectCreatePage";
+import ProjectDetailsPage from "../pages/contractor/ProjectDetailsPage";
+import ProjectEditPage from "../pages/contractor/ProjectEditPage";
+import RiskDataPage from "../pages/contractor/RiskDataPage";
+import AssessmentPage from "../pages/contractor/AssessmentPage";
+import MitigationPage from "../pages/contractor/MitigationPage";
+import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
+import AdminProjectsPage from "../pages/admin/AdminProjectsPage";
+import AdminAssessmentsPage from "../pages/admin/AdminAssessmentsPage";
+import AdminMitigationsPage from "../pages/admin/AdminMitigationsPage";
+import UnauthorizedPage from "../pages/UnauthorizedPage";
+import NotFoundPage from "../pages/NotFoundPage";
+import ProtectedRoute from "../routes/ProtectedRoute";
+import RoleRoute from "../routes/RoleRoute";
+import { USER_ROLES } from "../utils/constants";
 
 const router = createBrowserRouter([
   {
-    path: '/login',
+    path: "/login",
     element: <LoginPage />,
   },
   {
-    path: '/register',
+    path: "/register",
     element: <RegisterPage />,
   },
   {
-    path: '/verify-email',
+    path: "/verify-email",
     element: <VerifyEmailPage />,
   },
   {
-    path: '/forgot-password',
+    path: "/forgot-password",
     element: <ForgotPasswordPage />,
   },
   {
-    path: '/reset-password',
+    path: "/reset-password",
     element: <ResetPasswordPage />,
   },
   {
-    path: '/unauthorized',
+    path: "/unauthorized",
     element: <UnauthorizedPage />,
   },
   {
     element: <ProtectedRoute />,
     children: [
       {
-        path: '/',
+        path: "/",
         element: <AppShell />,
         children: [
           {
             index: true,
             element: <Navigate to="/dashboard" replace />,
           },
-
           {
-            path: 'dashboard',
+            path: "dashboard",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <DashboardPage />
@@ -69,7 +68,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'projects',
+            path: "projects",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <ProjectsPage />
@@ -77,7 +76,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'projects/new',
+            path: "projects/new",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <ProjectCreatePage />
@@ -85,7 +84,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'projects/:id',
+            path: "projects/:id",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <ProjectDetailsPage />
@@ -93,7 +92,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'projects/:id/edit',
+            path: "projects/:id/edit",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <ProjectEditPage />
@@ -101,7 +100,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'projects/:id/risk-data',
+            path: "projects/:id/risk-data",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <RiskDataPage />
@@ -109,7 +108,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'projects/:id/assessment',
+            path: "projects/:id/assessment",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <AssessmentPage />
@@ -117,16 +116,15 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'projects/:id/mitigation',
+            path: "projects/:id/mitigation",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <MitigationPage />
               </RoleRoute>
             ),
           },
-
           {
-            path: 'admin',
+            path: "admin",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminDashboardPage />
@@ -134,7 +132,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'admin/projects',
+            path: "admin/projects",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminProjectsPage />
@@ -142,7 +140,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'admin/assessments',
+            path: "admin/assessments",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminAssessmentsPage />
@@ -150,7 +148,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'admin/mitigations',
+            path: "admin/mitigations",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminMitigationsPage />
@@ -162,9 +160,9 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: '*',
+    path: "*",
     element: <NotFoundPage />,
   },
-])
+]);
 
-export default router
+export default router;
