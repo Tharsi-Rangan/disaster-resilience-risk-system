@@ -1,19 +1,37 @@
+import PageHeader from '../../components/common/PageHeader'
+import StatusBadge from '../../components/common/StatusBadge'
 import useAuth from '../../hooks/useAuth'
 
 function AdminDashboardPage() {
   const { user } = useAuth()
 
+  const cards = [
+    { title: 'Projects', description: 'Monitor all projects in the system.' },
+    { title: 'Assessments', description: 'Review risk assessment outputs.' },
+    { title: 'Mitigations', description: 'Manage mitigation plans and actions.' },
+  ]
+
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
-        <p className="text-slate-600">
-          Welcome, {user?.name}. Monitoring and management views will be added here.
-        </p>
+    <div>
+      <PageHeader
+        title="Admin Dashboard"
+        description={`Welcome, ${user?.name}. Monitor the overall system from here.`}
+      />
+
+      <div className="mb-6">
+        <StatusBadge label="Admin Access" variant="info" />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-slate-600">Admin protected route is working successfully.</p>
+      <div className="grid gap-4 md:grid-cols-3">
+        {cards.map((card) => (
+          <div
+            key={card.title}
+            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          >
+            <h3 className="text-lg font-semibold text-slate-900">{card.title}</h3>
+            <p className="mt-2 text-sm text-slate-600">{card.description}</p>
+          </div>
+        ))}
       </div>
     </div>
   )

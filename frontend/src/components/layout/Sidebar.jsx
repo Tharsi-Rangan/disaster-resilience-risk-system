@@ -7,10 +7,15 @@ function Sidebar() {
 
   const contractorLinks = [
     { label: 'Dashboard', to: '/dashboard' },
+    { label: 'Projects', to: '/projects' },
+    { label: 'Create Project', to: '/projects/new' },
   ]
 
   const adminLinks = [
     { label: 'Admin Dashboard', to: '/admin' },
+    { label: 'Projects', to: '/admin/projects' },
+    { label: 'Assessments', to: '/admin/assessments' },
+    { label: 'Mitigations', to: '/admin/mitigations' },
   ]
 
   const links = user?.role === USER_ROLES.ADMIN ? adminLinks : contractorLinks
