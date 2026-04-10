@@ -1,91 +1,90 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import useAuth from "../../hooks/useAuth";
-import { USER_ROLES } from "../../utils/constants";
-import { authService } from "../../services/authService";
-import getApiErrorMessage from "../../utils/getApiErrorMessage";
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import useAuth from '../../hooks/useAuth'
+import { USER_ROLES } from '../../utils/constants'
+import { authService } from '../../services/authService'
+import getApiErrorMessage from '../../utils/getApiErrorMessage'
 
 function LoginPage() {
-  const navigate = useNavigate();
-  const { login, isAuthenticated, user } = useAuth();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { login, isAuthenticated, user } = useAuth()
 
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [formError, setFormError] = useState("");
-  const [loading, setLoading] = useState(false);
+    email: location.state?.email || '',
+    password: '',
+  })
+  const [formError, setFormError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (isAuthenticated && user?.role === USER_ROLES.ADMIN) {
-      navigate("/admin", { replace: true });
+      navigate('/admin', { replace: true })
     } else if (isAuthenticated && user?.role === USER_ROLES.CONTRACTOR) {
-      navigate("/dashboard", { replace: true });
+      navigate('/dashboard', { replace: true })
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate])
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
+    const { name, value } = event.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-    setFormError("");
-  };
+    }))
+    setFormError('')
+  }
 
   const validateForm = () => {
     if (!formData.email.trim()) {
-      return "Email is required.";
+      return 'Email is required.'
     }
 
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      return "Please enter a valid email address.";
+      return 'Please enter a valid email address.'
     }
 
     if (!formData.password.trim()) {
-      return "Password is required.";
+      return 'Password is required.'
     }
 
     if (formData.password.length < 6) {
-      return "Password must be at least 6 characters.";
+      return 'Password must be at least 6 characters.'
     }
 
-    return "";
-  };
+    return ''
+  }
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    event.preventDefault()
 
-    const validationError = validateForm();
+    const validationError = validateForm()
     if (validationError) {
-      setFormError(validationError);
-      return;
+      setFormError(validationError)
+      return
     }
 
     try {
-      setLoading(true);
-      setFormError("");
+      setLoading(true)
+      setFormError('')
 
       const response = await authService.login({
         email: formData.email.trim(),
         password: formData.password,
-      });
+      })
 
-      login(response.user, response.token);
+      login(response.user, response.token)
 
       if (response.user?.role === USER_ROLES.ADMIN) {
-        navigate("/admin", { replace: true });
+        navigate('/admin', { replace: true })
       } else {
-        navigate("/dashboard", { replace: true });
+        navigate('/dashboard', { replace: true })
       }
     } catch (error) {
-      setFormError(
-        getApiErrorMessage(error, "Login failed. Please try again."),
-      );
+      setFormError(getApiErrorMessage(error, 'Login failed. Please try again.'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
@@ -103,10 +102,7 @@ function LoginPage() {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label
-              htmlFor="email"
-              className="mb-2 block text-sm font-medium text-slate-700"
-            >
+            <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
               Email
             </label>
             <input
@@ -121,12 +117,18 @@ function LoginPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="mb-2 block text-sm font-medium text-slate-700"
-            >
-              Password
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <input
               id="password"
               name="password"
@@ -143,24 +145,21 @@ function LoginPage() {
             disabled={loading}
             className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {loading ? "Signing in..." : "Login"}
+            {loading ? 'Signing in...' : 'Login'}
           </button>
         </form>
 
         <div className="mt-6 text-center text-sm text-slate-600">
           <p>
-            Don&apos;t have an account?{" "}
-            <Link
-              to="/register"
-              className="font-medium text-blue-600 hover:text-blue-700"
-            >
+            Don&apos;t have an account?{' '}
+            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-700">
               Register
             </Link>
           </p>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default LoginPage;
+export default LoginPage
