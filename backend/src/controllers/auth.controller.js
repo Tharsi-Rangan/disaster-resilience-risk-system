@@ -4,6 +4,7 @@ const { validationResult } = require("express-validator");
 const User = require("../models/User");
 const generateOtp = require("../utils/otpGenerator");
 const { sendOtpEmail } = require("../services/email.service");
+const safeUser = require("../utils/safeUser");
 
 const register = async (req, res) => {
   try {
@@ -101,6 +102,7 @@ const verifyEmail = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+
 const login = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -133,6 +135,7 @@ const login = async (req, res) => {
     return res.json({
       message: "Login successful.",
       token,
+      user: safeUser(user),
     });
   } catch (err) {
     return res.status(500).json({ message: err.message });

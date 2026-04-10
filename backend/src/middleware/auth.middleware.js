@@ -18,14 +18,16 @@ const authMiddleware = async (req, res, next) => {
     // Decode token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Find user from DB (so we can access role)
-    const user = await User.findById(decoded.userId).select("-password");
+    // Find user from DB
+    const user = await User.findById(decoded.userId).select(
+      "-password -verificationOtp -verificationOtpExpires -resetOtp -resetOtpExpires"
+    );
+
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Attach full user object to request
-    req.user = user; // includes role, email, name, etc.
+    req.user = user;
     next();
   } catch (err) {
     return res.status(401).json({ message: "Unauthorized" });

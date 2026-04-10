@@ -1,3 +1,4 @@
+//database schema 
 const mongoose = require("mongoose");
 
 const RiskAssessmentSchema = new mongoose.Schema(
