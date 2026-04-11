@@ -127,7 +127,7 @@ const router = createBrowserRouter([
           {
             path: "projects/:id/mitigation",
             element: (
-              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
+              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR, USER_ROLES.ADMIN]}>
                 <MitigationPage />
               </RoleRoute>
             ),
