@@ -26,34 +26,34 @@ import { USER_ROLES } from '../utils/constants'
 
 const router = createBrowserRouter([
   {
-    path: '/login',
+    path: "/login",
     element: <LoginPage />,
   },
   {
-    path: '/register',
+    path: "/register",
     element: <RegisterPage />,
   },
   {
-    path: '/verify-email',
+    path: "/verify-email",
     element: <VerifyEmailPage />,
   },
   {
-    path: '/forgot-password',
+    path: "/forgot-password",
     element: <ForgotPasswordPage />,
   },
   {
-    path: '/reset-password',
+    path: "/reset-password",
     element: <ResetPasswordPage />,
   },
   {
-    path: '/unauthorized',
+    path: "/unauthorized",
     element: <UnauthorizedPage />,
   },
   {
     element: <ProtectedRoute />,
     children: [
       {
-        path: '/',
+        path: "/",
         element: <AppShell />,
         children: [
           {
@@ -62,63 +62,70 @@ const router = createBrowserRouter([
           },
 
           {
-            path: 'dashboard',
+            path: "dashboard",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <DashboardPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'projects',
+            path: "projects",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <ProjectsPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'projects/new',
+            path: "projects/new",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <ProjectCreatePage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'projects/:id',
+            path: "projects/:id",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <ProjectDetailsPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'projects/:id/edit',
+            path: "projects/:id/edit",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <ProjectEditPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'projects/:id/risk-data',
+            path: "projects/:id/risk-data",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <RiskDataPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'projects/:id/assessment',
+            path: "projects/:id/assessment",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <AssessmentPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'projects/:id/mitigation',
+            path: "projects/:id/mitigation",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
                 <MitigationPage />
@@ -127,31 +134,34 @@ const router = createBrowserRouter([
           },
 
           {
-            path: 'admin',
+            path: "admin",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminDashboardPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'admin/projects',
+            path: "admin/projects",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminProjectsPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'admin/assessments',
+            path: "admin/assessments",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminAssessmentsPage />
               </RoleRoute>
             ),
           },
+
           {
-            path: 'admin/mitigations',
+            path: "admin/mitigations",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminMitigationsPage />
@@ -163,9 +173,9 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: '*',
+    path: "*",
     element: <NotFoundPage />,
   },
-])
+]);
 
-export default router
+export default router;
