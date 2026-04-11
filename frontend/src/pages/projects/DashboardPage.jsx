@@ -71,6 +71,11 @@ function DashboardPage() {
     [projectsWithCoordinates, selectedProjectId]
   )
 
+  const primaryProjectId = useMemo(() => {
+    if (selectedProjectId) return selectedProjectId
+    return projects[0]?._id || null
+  }, [selectedProjectId, projects])
+
   const modules = [
     {
       title: 'Project Management',
@@ -80,17 +85,17 @@ function DashboardPage() {
     {
       title: 'Risk Data Collection',
       description: 'Fetch and review project risk snapshots.',
-      to: '/projects/placeholder/risk-data',
+      to: primaryProjectId ? `/projects/${primaryProjectId}/risk-data` : null,
     },
     {
       title: 'Risk Assessment',
       description: 'Run and review project assessments.',
-      to: '/projects/placeholder/assessment',
+      to: primaryProjectId ? `/projects/${primaryProjectId}/assessment` : null,
     },
     {
       title: 'Mitigation Planning',
       description: 'Generate and review mitigation plans.',
-      to: '/projects/placeholder/mitigation',
+      to: primaryProjectId ? `/projects/${primaryProjectId}/mitigation` : null,
     },
   ]
 
@@ -169,12 +174,18 @@ function DashboardPage() {
             <h3 className="text-lg font-semibold text-slate-900">{module.title}</h3>
             <p className="mt-2 text-sm text-slate-600">{module.description}</p>
 
-            <Link
-              to={module.to}
-              className="mt-4 inline-block rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-            >
-              Open Module
-            </Link>
+            {module.to ? (
+              <Link
+                to={module.to}
+                className="mt-4 inline-block rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              >
+                Open Module
+              </Link>
+            ) : (
+              <span className="mt-4 inline-block cursor-not-allowed rounded-xl bg-slate-300 px-4 py-2 text-sm font-medium text-slate-600">
+                Add a Project First
+              </span>
+            )}
           </div>
         ))}
       </div>
