@@ -1,0 +1,112 @@
+[
+  {
+    "title": "Kelani Bridge Construction",
+    "description": "Major infrastructure bridge project",
+    "projectType": "bridge",
+    "location": { "address": "Colombo, Sri Lanka", "lat": null, "lng": null },
+    "budget": 250000000,
+    "startDate": "2026-03-01T00:00:00Z",
+    "endDate": "2027-06-01T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Galle Road Expansion",
+    "description": "Widening and upgrading Galle main road",
+    "projectType": "road",
+    "location": { "address": "Galle, Sri Lanka", "lat": null, "lng": null },
+    "budget": 120000000,
+    "startDate": "2026-04-01T00:00:00Z",
+    "endDate": "2026-12-01T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Colombo City Highrise",
+    "description": "Construction of a 50-floor commercial building",
+    "projectType": "building",
+    "location": { "address": "Colombo, Sri Lanka", "lat": null, "lng": null },
+    "budget": 500000000,
+    "startDate": "2026-05-15T00:00:00Z",
+    "endDate": "2028-05-15T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Matara Bridge Renovation",
+    "description": "Renovation of old Matara bridge",
+    "projectType": "bridge",
+    "location": { "address": "Matara, Sri Lanka", "lat": null, "lng": null },
+    "budget": 90000000,
+    "startDate": "2026-06-01T00:00:00Z",
+    "endDate": "2026-11-01T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Kandy Road Rehabilitation",
+    "description": "Repair and upgrade of Kandy central roads",
+    "projectType": "road",
+    "location": { "address": "Kandy, Sri Lanka", "lat": null, "lng": null },
+    "budget": 150000000,
+    "startDate": "2026-07-01T00:00:00Z",
+    "endDate": "2027-01-15T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Jaffna Administrative Building",
+    "description": "Construction of new government administrative offices",
+    "projectType": "building",
+    "location": { "address": "Jaffna, Sri Lanka", "lat": null, "lng": null },
+    "budget": 200000000,
+    "startDate": "2026-08-01T00:00:00Z",
+    "endDate": "2027-08-01T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Negombo Lagoon Bridge",
+    "description": "New bridge connecting Negombo city areas",
+    "projectType": "bridge",
+    "location": { "address": "Negombo, Sri Lanka", "lat": null, "lng": null },
+    "budget": 110000000,
+    "startDate": "2026-09-01T00:00:00Z",
+    "endDate": "2027-03-01T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Trincomalee Coastal Road",
+    "description": "New coastal highway development",
+    "projectType": "road",
+    "location": { "address": "Trincomalee, Sri Lanka", "lat": null, "lng": null },
+    "budget": 180000000,
+    "startDate": "2026-10-01T00:00:00Z",
+    "endDate": "2027-06-01T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Gampaha Office Complex",
+    "description": "Multi-floor commercial and office complex",
+    "projectType": "building",
+    "location": { "address": "Gampaha, Sri Lanka", "lat": null, "lng": null },
+    "budget": 220000000,
+    "startDate": "2026-11-01T00:00:00Z",
+    "endDate": "2028-01-01T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  },
+  {
+    "title": "Hambantota Industrial Road",
+    "description": "Road project connecting industrial zones",
+    "projectType": "road",
+    "location": { "address": "Hambantota, Sri Lanka", "lat": null, "lng": null },
+    "budget": 140000000,
+    "startDate": "2026-12-01T00:00:00Z",
+    "endDate": "2027-07-01T00:00:00Z",
+    "status": "DRAFT",
+    "createdBy": "YOUR_USER_ID_HERE"
+  }
+]

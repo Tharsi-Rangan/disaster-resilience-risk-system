@@ -1,3 +1,4 @@
+//protect your rourtes with auth and role middleware
 const router = require("express").Router();
 const ctrl = require("../controllers/assessment.controller");
 
