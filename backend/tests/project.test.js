@@ -17,14 +17,18 @@ let userId, adminId;
 
 // Connect to MongoDB before running tests
 beforeAll(async () => {
-  if (!process.env.MONGO_URI) {
-    throw new Error("MONGO_URI not set in .env");
+  if (!process.env.MONGO_URI_TEST) {
+    throw new Error("MONGO_URI_TEST not set in .env.test");
   }
 
-  await mongoose.connect(process.env.MONGO_URI, {
+  await mongoose.connect(process.env.MONGO_URI_TEST, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
+  const dbName = mongoose.connection?.db?.databaseName || "";
+  if (!dbName.toLowerCase().includes("test")) {
+    throw new Error(`Unsafe test database detected: ${dbName || "unknown"}`);
+  }
   console.log("Connected to MongoDB for tests");
 
   // Clear users/projects before tests
