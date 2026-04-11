@@ -19,6 +19,12 @@ function DataSourceInfo({ snapshot = null, fetchErrorMessage = '' }) {
     ? 'USGS (from earthquake snapshot fields)'
     : 'No snapshot data yet'
 
+  const normalizedError = String(fetchErrorMessage || '').toLowerCase()
+  const hasFetchIssue = Boolean(fetchErrorMessage)
+  const fetchIssueText = normalizedError.includes('cooldown') || normalizedError.includes('wait')
+    ? 'Please wait a few minutes before fetching a new snapshot.'
+    : 'Latest snapshot request could not be completed. Please try again shortly.'
+
   return (
     <div className="mt-8 rounded-2xl border border-slate-200 bg-linear-to-r from-slate-50 to-slate-100 p-6 shadow-sm">
       <div className="flex items-start gap-3 mb-4">
@@ -64,10 +70,10 @@ function DataSourceInfo({ snapshot = null, fetchErrorMessage = '' }) {
         </div>
       )}
 
-      {fetchErrorMessage && (
+      {hasFetchIssue && (
         <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3">
           <p className="text-xs text-red-800">
-            <strong>Latest fetch issue:</strong> {fetchErrorMessage}
+            <strong>Latest fetch issue:</strong> {fetchIssueText}
           </p>
         </div>
       )}

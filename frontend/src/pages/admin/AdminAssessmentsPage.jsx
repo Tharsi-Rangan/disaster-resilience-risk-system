@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ShieldCheck, Target, AlertTriangle, Activity, Search, Filter, RefreshCw, Trash2, FolderKanban } from 'lucide-react'
 import { projectService } from '../../services/projectService'
 import { deleteAssessment, getLatestAssessment } from '../../services/assessmentService'
@@ -28,6 +29,7 @@ const formatDateTime = (value) => {
 }
 
 function AdminAssessmentsPage() {
+  const navigate = useNavigate()
   const [rows, setRows] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -276,9 +278,17 @@ function AdminAssessmentsPage() {
                 {filteredRows.map((row) => {
                   const assessmentId = row?.latest?._id || ''
                   const isDeleting = deletingAssessmentId === assessmentId
+                  const hasProjectRoute = Boolean(row?.projectId)
 
                   return (
-                    <tr key={row.projectId || row.title} className="hover:bg-slate-50/50 transition-colors group">
+                    <tr
+                      key={row.projectId || row.title}
+                      className={`group transition-colors ${hasProjectRoute ? 'cursor-pointer hover:bg-slate-50/50' : ''}`}
+                      onClick={() => {
+                        if (!hasProjectRoute) return
+                        navigate(`/projects/${row.projectId}/assessment`)
+                      }}
+                    >
                       <td className="px-6 py-5 align-top">
                         <p className="font-extrabold text-slate-900 heading-font text-lg tracking-tight mb-0.5">{row.title}</p>
                       </td>
@@ -306,7 +316,10 @@ function AdminAssessmentsPage() {
                           <div className="flex justify-end opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               type="button"
-                              onClick={() => handleDeleteAssessment(assessmentId)}
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                handleDeleteAssessment(assessmentId)
+                              }}
                               disabled={isDeleting}
                               className="p-2 rounded-xl border border-transparent text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 transition-all disabled:opacity-50"
                               title="Purge Assessment Record"

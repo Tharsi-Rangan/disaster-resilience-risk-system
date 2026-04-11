@@ -2,6 +2,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 
 function getPageTitle(pathname) {
+  if (pathname.startsWith('/admin/risk-data/projects')) return 'All Projects Risk Data'
+  if (pathname.startsWith('/admin/assessments/projects')) return 'All Projects Assessments'
+  if (pathname.startsWith('/admin/mitigations/projects')) return 'All Projects Mitigations'
   if (pathname.startsWith('/admin/mitigations')) return 'Admin Mitigations'
   if (pathname.startsWith('/admin/assessments')) return 'Admin Assessments'
   if (pathname.startsWith('/admin/projects')) return 'Admin Projects'
@@ -28,7 +31,7 @@ function Navbar() {
   }
 
   return (
-    <header className="border-b border-slate-200/60 glass-panel px-6 py-4 sticky top-0 z-10 shadow-sm">
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 px-6 py-4 shadow-sm backdrop-blur">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 heading-font">

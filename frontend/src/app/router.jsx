@@ -13,11 +13,15 @@ import ProjectEditPage from '../pages/projects/ProjectEditPage'
 import RiskDataPage from '../pages/projects/RiskDataPage'
 import AssessmentPage from '../pages/projects/AssessmentPage'
 import MitigationPage from '../pages/projects/MitigationPage'
+import RiskDataProjectsPage from '../pages/projects/RiskDataProjectsPage'
+import AssessmentProjectsPage from '../pages/projects/AssessmentProjectsPage'
+import MitigationProjectsPage from '../pages/projects/MitigationProjectsPage'
 import ProjectsList from '../pages/projects/ProjectsList'
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
 import AdminProjectsPage from '../pages/admin/AdminProjectsPage'
 import AdminAssessmentsPage from '../pages/admin/AdminAssessmentsPage'
 import AdminMitigationsPage from '../pages/admin/AdminMitigationsPage'
+import AdminRiskDataProjectsPage from '../pages/admin/AdminRiskDataProjectsPage'
 import UnauthorizedPage from '../pages/UnauthorizedPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import ProtectedRoute from '../routes/ProtectedRoute'
@@ -89,6 +93,33 @@ const router = createBrowserRouter([
           },
 
           {
+            path: "projects/risk-data",
+            element: (
+              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
+                <RiskDataProjectsPage />
+              </RoleRoute>
+            ),
+          },
+
+          {
+            path: "projects/assessments",
+            element: (
+              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
+                <AssessmentProjectsPage />
+              </RoleRoute>
+            ),
+          },
+
+          {
+            path: "projects/mitigations",
+            element: (
+              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
+                <MitigationProjectsPage />
+              </RoleRoute>
+            ),
+          },
+
+          {
             path: "projects/:id",
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
@@ -109,8 +140,7 @@ const router = createBrowserRouter([
           {
             path: "projects/:id/risk-data",
             element: (
-              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
-                <RiskDataPage />
+            <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR, USER_ROLES.ADMIN]}>                <RiskDataPage />
               </RoleRoute>
             ),
           },
@@ -118,7 +148,7 @@ const router = createBrowserRouter([
           {
             path: "projects/:id/assessment",
             element: (
-              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
+              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR, USER_ROLES.ADMIN]}>
                 <AssessmentPage />
               </RoleRoute>
             ),
@@ -127,7 +157,7 @@ const router = createBrowserRouter([
           {
             path: "projects/:id/mitigation",
             element: (
-              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
+              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR, USER_ROLES.ADMIN]}>
                 <MitigationPage />
               </RoleRoute>
             ),
@@ -147,6 +177,15 @@ const router = createBrowserRouter([
             element: (
               <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
                 <AdminProjectsPage />
+              </RoleRoute>
+            ),
+          },
+
+          {
+            path: "admin/risk-data/projects",
+            element: (
+              <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                <AdminRiskDataProjectsPage />
               </RoleRoute>
             ),
           },

@@ -270,7 +270,9 @@ function AdminProjectsPage() {
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Geographical Node</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Budget Allocation</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">State</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Root Actions</th>
+                  <th className="sticky right-0 z-20 w-56 whitespace-nowrap border-l border-slate-200 bg-slate-100/95 px-6 py-4 text-right text-xs font-bold uppercase tracking-widest text-slate-500 backdrop-blur">
+                    Root Actions
+                  </th>
                 </tr>
               </thead>
 
@@ -309,8 +311,8 @@ function AdminProjectsPage() {
                         </span>
                       </td>
 
-                      <td className="px-6 py-5 align-top">
-                        <div className="flex flex-col sm:flex-row items-center justify-end gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <td className="sticky right-0 z-10 w-56 border-l border-slate-200 bg-white px-6 py-5 align-top group-hover:bg-slate-50/50">
+                        <div className="flex flex-col items-end justify-start gap-2 sm:flex-row sm:items-center sm:justify-end">
                           <select
                             value={projectStatus}
                             onChange={(event) => handleStatusChange(projectId, event.target.value)}

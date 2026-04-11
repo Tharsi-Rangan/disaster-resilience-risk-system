@@ -3,6 +3,7 @@ const { body, param } = require("express-validator");
 
 const auth = require("../middleware/auth.middleware");
 const requireRole = require("../middleware/role.middleware");
+const { projectOwnerOrAdminByParam } = require("../middleware/project.middleware");
 
 const controller = require("../controllers/riskData.controller");
 
@@ -12,6 +13,7 @@ router.post(
   "/fetch/:projectId",
   auth,
   requireRole("ADMIN", "CONTRACTOR"),
+  projectOwnerOrAdminByParam("projectId"),
   [
     /*  validate projectId */
     param("projectId").isMongoId().withMessage("Invalid projectId"),
@@ -34,6 +36,7 @@ router.get(
   "/:projectId/latest",
   auth,
   requireRole("ADMIN", "CONTRACTOR"),
+  projectOwnerOrAdminByParam("projectId"),
   /* validate projectId */
   [param("projectId").isMongoId().withMessage("Invalid projectId")],
   
@@ -45,6 +48,7 @@ router.get(
   "/:projectId/history",
   auth,
   requireRole("ADMIN", "CONTRACTOR"),
+  projectOwnerOrAdminByParam("projectId"),
   /* validate projectId */
   [param("projectId").isMongoId().withMessage("Invalid projectId")],
   

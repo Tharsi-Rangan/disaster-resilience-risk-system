@@ -5,7 +5,6 @@ import {
   ArrowLeft, Edit, Trash2, MapPin, Calendar, 
   DollarSign, Activity, AlertCircle, Clock 
 } from 'lucide-react';
-import PageHeader from '../../components/common/PageHeader';
 import { projectService } from '../../services/projectService';
 
 const containerStyle = {
@@ -184,31 +183,37 @@ function ProjectDetailsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="relative mx-auto max-w-7xl animate-in fade-in space-y-8 pb-12 duration-500">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-20 top-16 h-56 w-56 rounded-full bg-cyan-100/45 blur-3xl" />
+        <div className="absolute right-0 top-48 h-64 w-64 rounded-full bg-slate-200/35 blur-3xl" />
+      </div>
+
       {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur md:flex-row md:items-start">
+        <div className="flex items-start gap-4">
           <Link
             to="/projects"
-            className="p-3 bg-white rounded-full border border-slate-200/80 hover:bg-slate-50 transition-colors shadow-sm focus:ring-2 focus:ring-slate-500 group"
+            className="group rounded-full border border-slate-200/80 bg-white p-3 shadow-sm transition-colors hover:bg-slate-50 focus:ring-2 focus:ring-slate-500"
           >
             <ArrowLeft className="w-5 h-5 text-slate-600 group-hover:-translate-x-1 transition-transform" />
           </Link>
           <div>
-            <div className="flex items-center gap-4 mb-1">
-              <h1 className="text-4xl font-black text-slate-900 heading-font tracking-tight">{project.title}</h1>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Project Workspace</p>
+            <div className="mb-1 mt-1 flex flex-wrap items-center gap-3">
+              <h1 className="heading-font text-4xl font-black tracking-tight text-slate-900">{project.title}</h1>
               {getStatusBadge(project.status)}
             </div>
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm flex items-center gap-2 mt-2">
+            <p className="mt-2 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-500">
               <span className="text-slate-600">{project.projectType} Project Infrastructure</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 self-start">
           <Link
             to={`/projects/${id}/edit`}
-            className="inline-flex items-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+            className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit
@@ -216,25 +221,25 @@ function ProjectDetailsPage() {
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="inline-flex items-center px-4 py-2.5 bg-red-50 text-red-600 font-medium rounded-xl hover:bg-red-100 hover:text-red-700 transition-all disabled:opacity-50"
+            className="inline-flex items-center rounded-xl bg-red-50 px-4 py-2.5 font-medium text-red-600 transition-all hover:bg-red-100 hover:text-red-700 disabled:opacity-50"
           >
             {isDeleting ? 'Deleting...' : <><Trash2 className="w-4 h-4 mr-2" /> Delete</>}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         
         {/* Left Column: Details */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white/90 glass-panel rounded-3xl border border-slate-200/80 shadow-md p-10">
+          <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-10 shadow-md backdrop-blur">
             <h3 className="text-xl font-extrabold text-slate-900 heading-font border-b border-slate-200/60 pb-5 mb-8">About the Initiative</h3>
             <p className="text-slate-600 leading-relaxed text-lg font-medium mb-10 whitespace-pre-wrap">
               {project.description || "No description provided."}
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-start gap-5 shadow-inner">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="flex items-start gap-5 rounded-2xl border border-slate-200/80 bg-slate-50 p-6 shadow-inner">
                 <div className="p-4 bg-white shadow-sm text-emerald-600 rounded-xl border border-slate-100">
                   <DollarSign className="w-7 h-7" />
                 </div>
@@ -246,7 +251,7 @@ function ProjectDetailsPage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-start gap-5 shadow-inner">
+              <div className="flex items-start gap-5 rounded-2xl border border-slate-200/80 bg-slate-50 p-6 shadow-inner">
                 <div className="p-4 bg-white shadow-sm text-slate-700 rounded-xl border border-slate-100">
                   <Clock className="w-7 h-7" />
                 </div>
@@ -262,23 +267,23 @@ function ProjectDetailsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
              {/* Quick Actions / Shortcuts to other modules */}
-             <Link to={`/projects/${id}/risk-data`} className="p-6 bg-white/90 glass-panel border border-slate-200/80 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-center group">
+             <Link to={`/projects/${id}/risk-data`} className="group rounded-3xl border border-slate-200/80 bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
                <div className="w-14 h-14 bg-slate-50 text-slate-700 shadow-inner rounded-2xl border border-slate-200 flex items-center justify-center mx-auto mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300">
                  <Activity className="w-6 h-6" />
                </div>
                <h4 className="font-extrabold text-slate-900 heading-font text-lg">Risk Data</h4>
                <p className="text-xs font-medium text-slate-500 mt-1">View historical data</p>
              </Link>
-             <Link to={`/projects/${id}/assessment`} className="p-6 bg-white/90 glass-panel border border-slate-200/80 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-center group">
+             <Link to={`/projects/${id}/assessment`} className="group rounded-3xl border border-slate-200/80 bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
                <div className="w-14 h-14 bg-slate-50 text-slate-700 shadow-inner rounded-2xl border border-slate-200 flex items-center justify-center mx-auto mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300">
                  <AlertCircle className="w-6 h-6" />
                </div>
                <h4 className="font-extrabold text-slate-900 heading-font text-lg">Assessments</h4>
                <p className="text-xs font-medium text-slate-500 mt-1">Manage risks</p>
              </Link>
-             <Link to={`/projects/${id}/mitigation`} className="p-6 bg-white/90 glass-panel border border-slate-200/80 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-center group">
+             <Link to={`/projects/${id}/mitigation`} className="group rounded-3xl border border-slate-200/80 bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
                <div className="w-14 h-14 bg-slate-50 text-slate-700 shadow-inner rounded-2xl border border-slate-200 flex items-center justify-center mx-auto mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300">
                  <MapPin className="w-6 h-6" />
                </div>
@@ -290,7 +295,7 @@ function ProjectDetailsPage() {
 
         {/* Right Column: Map & Location */}
         <div className="space-y-6">
-          <div className="bg-white/90 glass-panel rounded-3xl border border-slate-200/80 shadow-md overflow-hidden flex flex-col h-[500px]">
+          <div className="flex h-[500px] flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 shadow-md backdrop-blur">
             <div className="p-5 border-b border-slate-200/60 flex items-center justify-between bg-white relative z-10 shadow-sm">
               <div className="flex items-center gap-3">
                  <div className="p-2 bg-slate-100 rounded-xl"><MapPin className="w-5 h-5 text-slate-600" /></div>
