@@ -110,6 +110,31 @@ function DashboardPage() {
         <StatusBadge label="Contractor Access" variant="success" />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        {modules.map((module) => (
+          <div
+            key={module.title}
+            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          >
+            <h3 className="text-lg font-semibold text-slate-900">{module.title}</h3>
+            <p className="mt-2 text-sm text-slate-600">{module.description}</p>
+
+            {module.to ? (
+              <Link
+                to={module.to}
+                className="mt-4 inline-block rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              >
+                Open Module
+              </Link>
+            ) : (
+              <span className="mt-4 inline-block cursor-not-allowed rounded-xl bg-slate-300 px-4 py-2 text-sm font-medium text-slate-600">
+                Add a Project First
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+
       <div className="mb-8 space-y-4">
         <h3 className="text-lg font-semibold text-slate-900">Registered Project Locations</h3>
 
@@ -165,30 +190,7 @@ function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {modules.map((module) => (
-          <div
-            key={module.title}
-            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-          >
-            <h3 className="text-lg font-semibold text-slate-900">{module.title}</h3>
-            <p className="mt-2 text-sm text-slate-600">{module.description}</p>
-
-            {module.to ? (
-              <Link
-                to={module.to}
-                className="mt-4 inline-block rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-              >
-                Open Module
-              </Link>
-            ) : (
-              <span className="mt-4 inline-block cursor-not-allowed rounded-xl bg-slate-300 px-4 py-2 text-sm font-medium text-slate-600">
-                Add a Project First
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+      
     </div>
   )
 }
