@@ -1,12 +1,12 @@
 const axios = require("axios");
 
-/*  allow overriding base URLs via .env (optional) */
 const OPENWEATHER_BASE =
-  process.env.OPENWEATHER_BASE_URL || "https://api.openweathermap.org/data/2.5/weather";
+  process.env.OPENWEATHER_BASE_URL ||
+  "https://api.openweathermap.org/data/2.5/weather";
 
 const OPEN_METEO_BASE =
-  process.env.OPEN_METEO_BASE_URL || "https://api.open-meteo.com/v1/forecast";
-
+  process.env.OPEN_METEO_BASE_URL ||
+  "https://api.open-meteo.com/v1/forecast";
 
 function toNumber(value, fallback = 0) {
   const n = Number(value);
@@ -16,23 +16,31 @@ function toNumber(value, fallback = 0) {
 function validateCoords(lat, lng) {
   const la = Number(lat);
   const lo = Number(lng);
+
   if (!Number.isFinite(la) || !Number.isFinite(lo)) return false;
   if (la < -90 || la > 90) return false;
   if (lo < -180 || lo > 180) return false;
+
   return true;
 }
 
 async function fetchFromOpenWeather({ lat, lng }) {
   const apiKey = process.env.OPENWEATHER_API_KEY;
-  if (!apiKey) throw new Error("OPENWEATHER_API_KEY is missing in .env");
+  if (!apiKey) {
+    const err = new Error("OPENWEATHER_API_KEY is missing in .env");
+    err.statusCode = 500;
+    throw err;
+  }
 
   const { data } = await axios.get(OPENWEATHER_BASE, {
     params: { lat, lon: lng, appid: apiKey, units: "metric" },
-    timeout: 20000, //  increased timeout
+    timeout: 20000,
   });
 
   const rainfallRaw =
-    data?.rain && (data.rain["1h"] || data.rain["3h"]) ? data.rain["1h"] || data.rain["3h"] : 0;
+    data?.rain && (data.rain["1h"] || data.rain["3h"])
+      ? data.rain["1h"] || data.rain["3h"]
+      : 0;
 
   return {
     temperature: toNumber(data?.main?.temp, 0),
@@ -52,7 +60,7 @@ async function fetchFromOpenMeteo({ lat, lng }) {
       current:
         "temperature_2m,precipitation,wind_speed_10m,relative_humidity_2m,cloud_cover",
     },
-    timeout: 20000, //  increased timeout
+    timeout: 20000,
   });
 
   const c = data?.current || {};
@@ -68,17 +76,15 @@ async function fetchFromOpenMeteo({ lat, lng }) {
 }
 
 /**
- * Main function used by riskData.service.js 
+ * Main function used by riskData.service.js
  * Tries OpenWeather first, falls back to Open-Meteo on error.
  */
 async function fetchOpenWeather({ lat, lng }) {
-  /* ✅ NEWLY ADDED: coordinate validation */
   if (!validateCoords(lat, lng)) {
     const err = new Error("Invalid coordinates for weather fetch");
     err.statusCode = 400;
     throw err;
   }
-  /* ✅ END */
 
   try {
     return await fetchFromOpenWeather({ lat, lng });
@@ -86,11 +92,9 @@ async function fetchOpenWeather({ lat, lng }) {
     try {
       return await fetchFromOpenMeteo({ lat, lng });
     } catch (e2) {
-      /* ✅ NEWLY ADDED: if both APIs fail, throw a clear error */
       const err = new Error("Weather providers failed (OpenWeather + OpenMeteo)");
       err.statusCode = 502;
       throw err;
-      /* ✅ END */
     }
   }
 }
