@@ -93,7 +93,7 @@ function ProjectsPage() {
             className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
           />
         </div>
-        <div className="relative w-full sm:w-auto min-w-[200px]">
+        <div className="relative w-full sm:w-auto min-w-50">
           <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10 pointer-events-none" />
           <select
             value={filterType}

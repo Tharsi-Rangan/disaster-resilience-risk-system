@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Activity } from 'lucide-react'
 import { projectService } from '../../services/projectService'
 import PageHeader from '../../components/common/PageHeader'
 
@@ -12,6 +14,7 @@ const normalizeProjects = (payload) => {
 }
 
 function AdminProjectsPage() {
+  const navigate = useNavigate()
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -294,6 +297,17 @@ function AdminProjectsPage() {
                               </option>
                             ))}
                           </select>
+
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/projects/${projectId}/risk-data`)}
+                            disabled={isProjectUpdating}
+                            title="View disaster risk data for this project"
+                            className="inline-flex items-center justify-center gap-1 rounded-lg border border-sky-200 px-2 py-1.5 text-xs font-medium text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-70"
+                          >
+                            <Activity className="h-3.5 w-3.5" />
+                            View Risk Data
+                          </button>
 
                           <button
                             type="button"

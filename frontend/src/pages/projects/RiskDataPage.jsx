@@ -17,7 +17,6 @@ import RiskHistoryTable from '../../features/riskData/components/RiskHistoryTabl
 import DataSourceInfo from '../../features/riskData/components/DataSourceInfo'
 import PageContextCard from '../../features/riskData/components/PageContextCard'
 import EmptyStateCard from '../../features/riskData/components/EmptyStateCard'
-import MapModal from '../../features/riskData/components/MapModal'
 import WeatherDetailsModal from '../../features/riskData/components/WeatherDetailsModal'
 import ShareFeatures from '../../features/riskData/components/ShareFeatures'
 
@@ -260,6 +259,12 @@ function RiskDataPage() {
         description="View and manage real-time environmental and seismic data collected for this project."
       />
 
+      {canDeleteSnapshots && (
+        <div className="mb-3 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-700">
+          Admin Mode
+        </div>
+      )}
+
       <ProjectSwitcherCard
         currentProjectId={projectId}
         onSwitchProject={handleSwitchProject}
@@ -288,12 +293,12 @@ function RiskDataPage() {
             previousSnapshot={previousSnapshot}
           />
 
-          <div className="mb-6 flex flex-wrap gap-3">
-            <MapModal
-              projectLocation={latestSnapshot.projectLocation}
+          <div className="mb-6">
+            <WeatherDetailsModal
+              snapshot={latestSnapshot}
+              projectLocation={projectOverview}
               projectName={projectOverview?.title || projectOverview?.name || 'Project'}
             />
-            <WeatherDetailsModal snapshot={latestSnapshot} />
           </div>
 
           <ShareFeatures

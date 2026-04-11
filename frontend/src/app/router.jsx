@@ -109,7 +109,7 @@ const router = createBrowserRouter([
           {
             path: "projects/:id/risk-data",
             element: (
-              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR]}>
+              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR, USER_ROLES.ADMIN]}>
                 <RiskDataPage />
               </RoleRoute>
             ),
