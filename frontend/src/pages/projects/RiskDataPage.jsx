@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { AlertCircle, CheckCircle2, Clock3, Info, X } from 'lucide-react'
 import PageHeader from '../../components/common/PageHeader'
 import { riskDataService } from '../../services/riskDataService'
 import useAuth from '../../hooks/useAuth'
 import { USER_ROLES } from '../../utils/constants'
 import ProjectInfoCard from '../../features/riskData/components/ProjectInfoCard'
+import ProjectSwitcherCard from '../../features/riskData/components/ProjectSwitcherCard'
 import RiskDataToolbar from '../../features/riskData/components/RiskDataToolbar'
 import RiskSummaryHero from '../../features/riskData/components/RiskSummaryHero'
 import LatestRiskSnapshotCard from '../../features/riskData/components/LatestRiskSnapshotCard'
@@ -79,6 +80,7 @@ function Toast({ toast, onClose }) {
 
 function RiskDataPage() {
   const { id: projectId } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuth()
 
   const [latestSnapshot, setLatestSnapshot] = useState(null)
@@ -88,6 +90,7 @@ function RiskDataPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [toasts, setToasts] = useState([])
   const [latestFetchError, setLatestFetchError] = useState('')
+  const [projectOverview, setProjectOverview] = useState(null)
   const toastTimersRef = useRef({})
 
   const userRole = normalizeRole(user?.role)
@@ -213,6 +216,18 @@ function RiskDataPage() {
     [pushToast]
   )
 
+  const handleSwitchProject = useCallback(
+    (nextProjectId) => {
+      if (!nextProjectId || String(nextProjectId) === String(projectId)) return
+      navigate(`/projects/${nextProjectId}/risk-data`)
+    },
+    [navigate, projectId]
+  )
+
+  const handleProjectLoaded = useCallback((projectData) => {
+    setProjectOverview(projectData || null)
+  }, [])
+
   if (pageLoading) {
     return (
       <div>
@@ -245,7 +260,12 @@ function RiskDataPage() {
         description="View and manage real-time environmental and seismic data collected for this project."
       />
 
-      <ProjectInfoCard projectId={projectId} />
+      <ProjectSwitcherCard
+        currentProjectId={projectId}
+        onSwitchProject={handleSwitchProject}
+      />
+
+      <ProjectInfoCard projectId={projectId} onProjectLoaded={handleProjectLoaded} />
 
       <PageContextCard projectId={projectId} />
 
@@ -269,14 +289,18 @@ function RiskDataPage() {
           />
 
           <div className="mb-6 flex flex-wrap gap-3">
-            <MapModal projectLocation={latestSnapshot.projectLocation} projectName="Project" />
+            <MapModal
+              projectLocation={latestSnapshot.projectLocation}
+              projectName={projectOverview?.title || projectOverview?.name || 'Project'}
+            />
             <WeatherDetailsModal snapshot={latestSnapshot} />
           </div>
 
           <ShareFeatures
             snapshot={latestSnapshot}
             history={history}
-            projectName="Project"
+            projectName={projectOverview?.title || projectOverview?.name || 'Project'}
+            projectOverview={projectOverview}
             onFeedback={handleShareFeedback}
           />
 
