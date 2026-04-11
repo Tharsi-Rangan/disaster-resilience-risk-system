@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const RiskSnapshotSchema = new mongoose.Schema(
   {
     projectId: {

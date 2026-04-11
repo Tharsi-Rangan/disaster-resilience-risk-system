@@ -1,5 +1,3 @@
-// backend/src/utils/assessment.calc.js
-//core calculation logic for risk assessment scores and levels, based on Component 2 snapshots and elevation data
 const clamp = (n) => Math.max(0, Math.min(100, Number(n || 0)));
 
 const levelFromScore = (score) => {
@@ -8,7 +6,6 @@ const levelFromScore = (score) => {
   return "LOW";
 };
 
-// Uses Component 2 snapshot fields
 const calcWeatherScore = (snapshot) => {
   const rain = Number(snapshot.rainfall || 0);
   const wind = Number(snapshot.windSpeed || 0);
@@ -24,7 +21,9 @@ const calcEarthquakeScore = (snapshot) => {
   return clamp(Math.round((count / 10) * 100)); // 10+ => 100
 };
 
-const calcFloodBase = (snapshot) => clamp(snapshot.floodRiskIndex || 0);
+const calcFloodBase = (snapshot) => {
+  return clamp(snapshot.floodRiskIndex || 0);
+};
 
 const adjustFloodByElevation = (floodBase, elevation) => {
   if (typeof elevation !== "number") return clamp(floodBase);
