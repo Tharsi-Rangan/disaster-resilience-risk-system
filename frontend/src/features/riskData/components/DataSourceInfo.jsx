@@ -1,6 +1,24 @@
 import { Cloud, Zap, Info } from 'lucide-react'
 
-function DataSourceInfo() {
+function DataSourceInfo({ snapshot = null, fetchErrorMessage = '' }) {
+  const source = snapshot?.source || ''
+  const normalizedSource = String(source).toLowerCase()
+  const usedFallbackWeather = normalizedSource.includes('openmeteo') || normalizedSource.includes('open-meteo')
+  const usedOpenWeather = normalizedSource.includes('openweather')
+
+  const weatherProviderUsed =
+    !snapshot
+      ? 'No snapshot data yet'
+      : usedFallbackWeather
+      ? 'Open-Meteo (fallback)'
+      : usedOpenWeather
+      ? 'OpenWeather (primary)'
+      : 'Not explicitly specified in snapshot source'
+
+  const earthquakeProvider = snapshot
+    ? 'USGS (from earthquake snapshot fields)'
+    : 'No snapshot data yet'
+
   return (
     <div className="mt-8 rounded-2xl border border-slate-200 bg-linear-to-r from-slate-50 to-slate-100 p-6 shadow-sm">
       <div className="flex items-start gap-3 mb-4">
@@ -17,34 +35,42 @@ function DataSourceInfo() {
         <div className="rounded-xl bg-white border border-slate-200 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Cloud className="w-4 h-4 text-blue-600" />
-            <h4 className="font-semibold text-slate-900 text-sm">Weather Data</h4>
+            <h4 className="font-semibold text-slate-900 text-sm">Weather Provider Used</h4>
           </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Collected from <strong>OpenWeather API</strong> with <strong>Open-Meteo</strong> as fallback provider.
-            Includes temperature, humidity, wind speed, rainfall, pressure, visibility, and weather codes.
-          </p>
-          <p className="text-xs text-slate-500 mt-2">Updated: Every fetch request</p>
+          <p className="text-xs text-slate-700 leading-relaxed">{weatherProviderUsed}</p>
+          <p className="text-xs text-slate-500 mt-2">Derived from snapshot source metadata.</p>
         </div>
 
         <div className="rounded-xl bg-white border border-slate-200 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Zap className="w-4 h-4 text-orange-600" />
-            <h4 className="font-semibold text-slate-900 text-sm">Earthquake Data</h4>
+            <h4 className="font-semibold text-slate-900 text-sm">Earthquake Provider</h4>
           </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Sourced from <strong>USGS Earthquake API</strong>. Detects seismic activity within
-            200 km radius with magnitude ≥ 3.0 over the past 30 days.
-          </p>
-          <p className="text-xs text-slate-500 mt-2">Updated: Every fetch request</p>
+          <p className="text-xs text-slate-700 leading-relaxed">{earthquakeProvider}</p>
+          <p className="text-xs text-slate-500 mt-2">Shown only from available snapshot data.</p>
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-3">
-        <p className="text-xs text-blue-800">
-          <strong>💡 Tip:</strong> Data is cached for 5 minutes after fetch to prevent API rate limiting.
-          If you see a cooldown message, please wait before fetching again.
-        </p>
+      <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+        <p className="text-xs font-semibold text-slate-700">Snapshot Source</p>
+        <p className="mt-1 text-xs text-slate-600">{source || 'No source available yet.'}</p>
       </div>
+
+      {usedFallbackWeather && (
+        <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-3">
+          <p className="text-xs text-amber-800">
+            <strong>Notice:</strong> Fallback weather provider was used for this snapshot.
+          </p>
+        </div>
+      )}
+
+      {fetchErrorMessage && (
+        <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3">
+          <p className="text-xs text-red-800">
+            <strong>Latest fetch issue:</strong> {fetchErrorMessage}
+          </p>
+        </div>
+      )}
     </div>
   )
 }
