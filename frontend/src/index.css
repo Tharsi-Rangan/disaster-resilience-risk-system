@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   color: #0f172a;
   background-color: #f8fafc;
 }
@@ -10,5 +12,29 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #f4f7f9;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom premium utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.heading-font {
+  font-family: 'Outfit', sans-serif;
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark-pro-gradient {
+  background: linear-gradient(135deg, #020617 0%, #1e293b 100%);
 }

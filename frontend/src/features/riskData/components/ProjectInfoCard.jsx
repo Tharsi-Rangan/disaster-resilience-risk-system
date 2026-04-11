@@ -91,8 +91,8 @@ function ProjectInfoCard({ projectId }) {
     <div className="mb-6 rounded-2xl border border-slate-200 bg-linear-to-br from-white to-slate-50 p-6 shadow-sm">
       <div className="grid gap-4 md:grid-cols-3">
         <div className="flex items-start gap-3">
-          <div className="rounded-lg bg-indigo-100 p-2">
-            <MapPinned className="h-5 w-5 text-indigo-600" />
+          <div className="rounded-lg bg-slate-100 p-2">
+            <MapPinned className="h-5 w-5 text-slate-600" />
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Project Name</p>

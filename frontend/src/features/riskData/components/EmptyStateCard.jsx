@@ -18,7 +18,7 @@ function EmptyStateCard({ onFetch, loading = false }) {
         type="button"
         onClick={onFetch}
         disabled={loading}
-        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-xl bg-slate-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? (
           <>

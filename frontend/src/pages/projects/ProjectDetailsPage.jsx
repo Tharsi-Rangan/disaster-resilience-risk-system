@@ -163,21 +163,21 @@ function ProjectDetailsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (error || !project) {
     return (
-      <div className="max-w-3xl mx-auto mt-12 bg-white rounded-2xl border border-red-100 p-8 text-center shadow-lg shadow-red-500/5">
-        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <AlertCircle className="w-8 h-8" />
+      <div className="max-w-3xl mx-auto mt-12 bg-white/90 glass-panel rounded-3xl border border-red-200/80 p-10 text-center shadow-lg shadow-red-500/5">
+        <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-red-100">
+          <AlertCircle className="w-10 h-10" />
         </div>
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Project Not Found</h2>
-        <p className="text-slate-500 mb-6">{error || "The project you are looking for doesn't exist or has been removed."}</p>
-        <Link to="/projects" className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Projects
+        <h2 className="text-2xl font-extrabold text-slate-900 heading-font mb-3">Project Record Unavailable</h2>
+        <p className="text-slate-500 font-medium mb-8 text-lg">{error || "The project you are looking for doesn't exist or has been removed."}</p>
+        <Link to="/projects" className="inline-flex items-center px-6 py-3 dark-pro-gradient text-white font-bold rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
+          <ArrowLeft className="w-5 h-5 mr-3" /> Back to Projects View
         </Link>
       </div>
     );
@@ -190,17 +190,17 @@ function ProjectDetailsPage() {
         <div className="flex items-center gap-4">
           <Link
             to="/projects"
-            className="p-2.5 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm"
+            className="p-3 bg-white rounded-full border border-slate-200/80 hover:bg-slate-50 transition-colors shadow-sm focus:ring-2 focus:ring-slate-500 group"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-600" />
+            <ArrowLeft className="w-5 h-5 text-slate-600 group-hover:-translate-x-1 transition-transform" />
           </Link>
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-extrabold text-slate-900">{project.title}</h1>
+            <div className="flex items-center gap-4 mb-1">
+              <h1 className="text-4xl font-black text-slate-900 heading-font tracking-tight">{project.title}</h1>
               {getStatusBadge(project.status)}
             </div>
-            <p className="text-slate-500 font-medium flex items-center gap-2">
-              <span className="capitalize">{project.projectType} Project</span>
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm flex items-center gap-2 mt-2">
+              <span className="text-slate-600">{project.projectType} Project Infrastructure</span>
             </p>
           </div>
         </div>
@@ -227,34 +227,34 @@ function ProjectDetailsPage() {
         
         {/* Left Column: Details */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-8">
-            <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4 mb-6">About the Project</h3>
-            <p className="text-slate-600 leading-relaxed mb-8 whitespace-pre-wrap">
+          <div className="bg-white/90 glass-panel rounded-3xl border border-slate-200/80 shadow-md p-10">
+            <h3 className="text-xl font-extrabold text-slate-900 heading-font border-b border-slate-200/60 pb-5 mb-8">About the Initiative</h3>
+            <p className="text-slate-600 leading-relaxed text-lg font-medium mb-10 whitespace-pre-wrap">
               {project.description || "No description provided."}
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-5 bg-emerald-50/50 border border-emerald-100 rounded-2xl flex items-start gap-4">
-                <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
-                  <DollarSign className="w-6 h-6" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-start gap-5 shadow-inner">
+                <div className="p-4 bg-white shadow-sm text-emerald-600 rounded-xl border border-slate-100">
+                  <DollarSign className="w-7 h-7" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-emerald-800 mb-1">Total Budget</p>
-                  <p className="text-2xl font-bold text-emerald-900">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Total Budget</p>
+                  <p className="text-3xl font-extrabold text-slate-900 heading-font">
                     LKR {project.budget?.toLocaleString() || '0'}
                   </p>
                 </div>
               </div>
 
-              <div className="p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl flex items-start gap-4">
-                <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
-                  <Clock className="w-6 h-6" />
+              <div className="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-start gap-5 shadow-inner">
+                <div className="p-4 bg-white shadow-sm text-slate-700 rounded-xl border border-slate-100">
+                  <Clock className="w-7 h-7" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-indigo-800 mb-1">Timeline</p>
-                  <p className="text-lg font-bold text-indigo-900">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Timeline</p>
+                  <p className="text-lg font-bold text-slate-900 mt-1">
                     {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'} 
-                    <span className="text-indigo-400 mx-1">→</span> 
+                    <span className="text-slate-400 mx-2">→</span> 
                     {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
@@ -262,41 +262,44 @@ function ProjectDetailsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
              {/* Quick Actions / Shortcuts to other modules */}
-             <Link to={`/projects/${id}/risk-data`} className="p-6 bg-white rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-blue-200 transition-all text-center group">
-               <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+             <Link to={`/projects/${id}/risk-data`} className="p-6 bg-white/90 glass-panel border border-slate-200/80 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-center group">
+               <div className="w-14 h-14 bg-slate-50 text-slate-700 shadow-inner rounded-2xl border border-slate-200 flex items-center justify-center mx-auto mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300">
                  <Activity className="w-6 h-6" />
                </div>
-               <h4 className="font-semibold text-slate-800">Risk Data</h4>
-               <p className="text-xs text-slate-500 mt-1">View historical data</p>
+               <h4 className="font-extrabold text-slate-900 heading-font text-lg">Risk Data</h4>
+               <p className="text-xs font-medium text-slate-500 mt-1">View historical data</p>
              </Link>
-             <Link to={`/projects/${id}/assessment`} className="p-6 bg-white rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-amber-200 transition-all text-center group">
-               <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+             <Link to={`/projects/${id}/assessment`} className="p-6 bg-white/90 glass-panel border border-slate-200/80 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-center group">
+               <div className="w-14 h-14 bg-slate-50 text-slate-700 shadow-inner rounded-2xl border border-slate-200 flex items-center justify-center mx-auto mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300">
                  <AlertCircle className="w-6 h-6" />
                </div>
-               <h4 className="font-semibold text-slate-800">Assessments</h4>
-               <p className="text-xs text-slate-500 mt-1">Manage risks</p>
+               <h4 className="font-extrabold text-slate-900 heading-font text-lg">Assessments</h4>
+               <p className="text-xs font-medium text-slate-500 mt-1">Manage risks</p>
              </Link>
-             <Link to={`/projects/${id}/mitigation`} className="p-6 bg-white rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-purple-200 transition-all text-center group">
-               <div className="w-12 h-12 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+             <Link to={`/projects/${id}/mitigation`} className="p-6 bg-white/90 glass-panel border border-slate-200/80 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-center group">
+               <div className="w-14 h-14 bg-slate-50 text-slate-700 shadow-inner rounded-2xl border border-slate-200 flex items-center justify-center mx-auto mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300">
                  <MapPin className="w-6 h-6" />
                </div>
-               <h4 className="font-semibold text-slate-800">Mitigation</h4>
-               <p className="text-xs text-slate-500 mt-1">Plans & actions</p>
+               <h4 className="font-extrabold text-slate-900 heading-font text-lg">Mitigation</h4>
+               <p className="text-xs font-medium text-slate-500 mt-1">Plans & actions</p>
              </Link>
           </div>
         </div>
 
         {/* Right Column: Map & Location */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col h-125">
-            <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-              <MapPin className="w-5 h-5 text-indigo-500" />
-              <h3 className="font-bold text-slate-800">Location Details</h3>
+          <div className="bg-white/90 glass-panel rounded-3xl border border-slate-200/80 shadow-md overflow-hidden flex flex-col h-[500px]">
+            <div className="p-5 border-b border-slate-200/60 flex items-center justify-between bg-white relative z-10 shadow-sm">
+              <div className="flex items-center gap-3">
+                 <div className="p-2 bg-slate-100 rounded-xl"><MapPin className="w-5 h-5 text-slate-600" /></div>
+                 <h3 className="font-extrabold text-slate-900 heading-font text-lg tracking-tight">Geographic Data</h3>
+              </div>
             </div>
             
-            <div className="flex-1 relative bg-slate-100">
+            <div className="flex-1 relative bg-slate-100 group/map">
+              <div className="absolute inset-x-0 top-0 h-1 bg-slate-900 z-10 opacity-0 group-hover/map:opacity-100 transition-opacity"></div>
               {!isMapKeyLoading && mapsApiKey && !isMapBlocked && project.location?.lat && project.location?.lng ? (
                 <ProjectDetailsMap
                   mapsApiKey={mapsApiKey}
@@ -304,32 +307,36 @@ function ProjectDetailsPage() {
                   onMapBlocked={() => setIsMapBlocked(true)}
                 />
               ) : project.location?.lat && project.location?.lng ? (
-                <GoogleEmbedMap lat={project.location.lat} lng={project.location.lng} />
+                <div className="w-full h-full grayscale-[30%] group-hover/map:grayscale-0 transition-all duration-700">
+                  <GoogleEmbedMap lat={project.location.lat} lng={project.location.lng} />
+                </div>
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-slate-500">
-                  <div className="space-y-2">
-                    <MapPin className="w-8 h-8 mx-auto text-slate-300" />
-                    <p>Map view is unavailable. Address details are still available below.</p>
+                <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-slate-500 bg-slate-50">
+                  <div className="space-y-3">
+                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-200">
+                      <MapPin className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <p className="font-medium max-w-xs mx-auto">Map view unavailable. Address data available below.</p>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="p-5 bg-white border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Registered Address</label>
-              <p className="text-slate-800 font-medium">
-                {project.location?.address || "Address not specified"}
+            <div className="p-6 bg-white border-t border-slate-200/60 relative z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Registered Address Location</label>
+              <p className="text-slate-800 font-bold text-sm">
+                {project.location?.address || "Address not provided"}
               </p>
               
               {project.location?.lat && (
-                <div className="mt-4 pt-4 border-t border-slate-100 flex gap-6 text-sm">
+                <div className="mt-5 pt-5 border-t border-slate-100 flex gap-8 text-sm">
                   <div>
-                    <span className="block text-xs text-slate-500 mb-0.5">Latitude</span>
-                    <span className="font-mono font-medium text-slate-700">{project.location.lat.toFixed(5)}</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Latitude</span>
+                    <span className="font-mono font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded-md">{project.location.lat.toFixed(5)}</span>
                   </div>
                   <div>
-                    <span className="block text-xs text-slate-500 mb-0.5">Longitude</span>
-                    <span className="font-mono font-medium text-slate-700">{project.location.lng.toFixed(5)}</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Longitude</span>
+                    <span className="font-mono font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded-md">{project.location.lng.toFixed(5)}</span>
                   </div>
                 </div>
               )}

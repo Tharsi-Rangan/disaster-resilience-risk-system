@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import PageHeader from '../../components/common/PageHeader'
+import { Trash2, AlertTriangle, Cpu, FolderKanban } from 'lucide-react'
 import StatusBadge from '../../components/common/StatusBadge'
 import { getAllMitigationPlans, deleteMitigationPlan } from '../../services/mitigationService'
 
@@ -42,107 +41,100 @@ function AdminMitigationsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500">
-          <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span className="font-medium">Loading mitigation plans...</span>
+      <div className="flex justify-center p-12">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800"></div>
+          <p className="text-sm text-slate-500 font-bold animate-pulse tracking-widest uppercase">Fetching AI Mitigation Data...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Global Mitigation Overview"
-        description="Monitor and manage disaster mitigation progress across all active projects."
-      />
+    <div className="space-y-6 animate-in fade-in duration-500 pb-12 w-full">
 
       {error && (
         <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3">
-           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+           <AlertTriangle className="w-5 h-5" />
            <span className="font-medium">{error}</span>
         </div>
       )}
 
       {plans.length === 0 && !error ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-16 text-center">
-           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm mb-4">
-             <svg className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path d="M12 14l9-5-9-5-9 5 9 5z" />
-               <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-             </svg>
-           </div>
-           <h3 className="text-xl font-bold text-slate-900 mb-2">No Plans Generated</h3>
-           <p className="text-slate-500 mb-6 max-w-sm mx-auto leading-relaxed">There are currently no AI mitigation plans active in the system.</p>
+        <div className="p-16 text-center bg-slate-50 rounded-3xl border border-slate-200/80">
+             <Cpu className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+             <h3 className="text-lg font-bold text-slate-700 mb-1">No Plans Generated</h3>
+             <p className="text-sm text-slate-500">There are currently no AI mitigation plans active in the system.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4">Project Information</th>
-                <th className="px-6 py-4">AI Engine</th>
-                <th className="px-6 py-4">Priority Level</th>
-                <th className="px-6 py-4">Progress Map</th>
-                <th className="px-6 py-4">Plan Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
-              {plans.map((plan) => (
-                <tr key={plan._id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-slate-900 mb-1">{plan.projectId?.title || 'Unknown/Deleted Project'}</p>
-                    <p className="text-xs text-slate-400">Owner: {plan.createdBy?.name || 'Unknown'}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge label={plan.aiProvider || "RULE-BASED"} variant="default" />
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge 
-                      label={plan.priorityLevel} 
-                      variant={plan.priorityLevel === 'HIGH' ? 'danger' : plan.priorityLevel === 'MEDIUM' ? 'warning' : 'success'} 
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
-                      <div className="text-center">
-                        <span className="block text-lg text-slate-900">{plan.totalRecommendations}</span>
-                        Total
-                      </div>
-                      <div className="text-center">
-                        <span className="block text-lg text-amber-600">{plan.ongoingCount}</span>
-                        WIP
-                      </div>
-                      <div className="text-center">
-                        <span className="block text-lg text-green-600">{plan.completedCount}</span>
-                        Done
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge 
-                      label={plan.planStatus} 
-                      variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} 
-                    />
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleDelete(plan._id)}
-                      disabled={deletingId === plan._id}
-                      className="text-red-500 hover:text-red-700 font-medium disabled:opacity-50 flex items-center justify-end gap-1 ml-auto"
-                    >
-                      {deletingId === plan._id ? 'Deleting...' : 'Delete Plan'}
-                    </button>
-                  </td>
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-slate-100/50 border-b border-slate-200">
+                <tr>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Project Information</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">AI Engine</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Priority</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Metrics Mapping</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Plan Progress</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Root Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100/80">
+                {plans.map((plan) => (
+                  <tr key={plan._id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-6 py-5 align-top">
+                      <p className="font-extrabold text-slate-900 heading-font text-lg tracking-tight mb-0.5">{plan.projectId?.title || 'System Orphaned Plan'}</p>
+                      <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Architect: {plan.createdBy?.name || 'System'}</p>
+                    </td>
+                    <td className="px-6 py-5 align-top">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-widest border border-indigo-100 shadow-sm gap-1.5"><Cpu className="w-3 h-3" /> {plan.aiProvider || "RULE-BASED"}</span>
+                    </td>
+                    <td className="px-6 py-5 align-top">
+                      <StatusBadge 
+                        label={plan.priorityLevel} 
+                        variant={plan.priorityLevel === 'HIGH' ? 'danger' : plan.priorityLevel === 'MEDIUM' ? 'warning' : 'success'} 
+                      />
+                    </td>
+                    <td className="px-6 py-5 align-top">
+                      <div className="flex items-center gap-5 text-xs font-bold text-slate-500">
+                        <div className="text-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60 shadow-inner">
+                          <span className="block text-lg text-slate-900 font-extrabold">{plan.totalRecommendations}</span>
+                          Total
+                        </div>
+                        <div className="text-center bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200/60 shadow-inner">
+                          <span className="block text-lg text-amber-600 font-extrabold">{plan.ongoingCount}</span>
+                          WIP
+                        </div>
+                        <div className="text-center bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/60 shadow-inner">
+                          <span className="block text-lg text-emerald-600 font-extrabold">{plan.completedCount}</span>
+                          Done
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 align-top">
+                      <StatusBadge 
+                        label={plan.planStatus} 
+                        variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} 
+                      />
+                    </td>
+                    <td className="px-6 py-5 align-top text-right">
+                      <div className="flex justify-end opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleDelete(plan._id)}
+                          disabled={deletingId === plan._id}
+                          className="p-2 rounded-xl border border-transparent text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 transition-all disabled:opacity-50"
+                          title="Purge Plan"
+                        >
+                          <Trash2 className="w-4 h-4 cursor-pointer" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

@@ -215,12 +215,12 @@ function RiskDataPage() {
 
   if (pageLoading) {
     return (
-      <div>
+      <div className="space-y-8 pb-10 animate-in fade-in duration-500 max-w-7xl mx-auto">
         <PageHeader
-          title="Disaster Risk Data"
+          title="Disaster Risk Intelligence"
           description="View and manage real-time environmental and seismic data collected for this project."
         />
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-8 shadow-sm">
           <div className="space-y-4">
             <div className="h-10 w-48 animate-pulse rounded-lg bg-slate-200"></div>
             <div className="h-4 w-full animate-pulse rounded-lg bg-slate-100"></div>
@@ -239,9 +239,9 @@ function RiskDataPage() {
   const previousSnapshot = history.length > 1 ? history[1] : null
 
   return (
-    <div>
+    <div className="space-y-8 pb-10 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader
-        title="Disaster Risk Data"
+        title="Disaster Risk Intelligence"
         description="View and manage real-time environmental and seismic data collected for this project."
       />
 

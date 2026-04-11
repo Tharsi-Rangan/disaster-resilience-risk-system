@@ -11,11 +11,11 @@ function LatestRiskSnapshotCard({ snapshot }) {
 
   return (
     <div className="mb-8 space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-linear-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-linear-to-br from-blue-50 to-slate-50 p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100">
-              <MapPin className="h-5 w-5 text-indigo-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
+              <MapPin className="h-5 w-5 text-slate-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Latest Snapshot</h2>

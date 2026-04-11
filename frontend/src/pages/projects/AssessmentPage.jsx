@@ -111,26 +111,23 @@ export default function AssessmentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-8 shadow-md">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Risk Assessment & Scoring Engine
+            <h1 className="text-2xl font-extrabold text-slate-900 heading-font tracking-tight">
+              Risk Assessment Engine
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Component 3 — Run and monitor infrastructure risk
-            </p>
-            <p className="mt-2 text-xs text-slate-400">
-              Project ID: {projectId}
+            <p className="mt-1 text-sm font-medium text-slate-500">
+              Component 3 — Run simulations and monitor infrastructure risk scores.
             </p>
           </div>
 
           <button
             onClick={handleRunAssessment}
             disabled={loading}
-            className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl dark-pro-gradient px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/40 hover:-translate-y-0.5 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
           >
-            {loading ? "Processing..." : "Run Assessment"}
+            {loading ? "Processing..." : "Run Assessment Simulation"}
           </button>
         </div>
       </div>

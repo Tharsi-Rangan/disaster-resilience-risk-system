@@ -43,7 +43,7 @@ function RiskHistoryTable({ history = [], onDelete = null, loading = false }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {isOpen ? (
-              <ChevronDown className="h-5 w-5 text-indigo-600" />
+              <ChevronDown className="h-5 w-5 text-slate-600" />
             ) : (
               <ChevronRight className="h-5 w-5 text-slate-600" />
             )}

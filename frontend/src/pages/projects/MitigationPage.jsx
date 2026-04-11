@@ -139,8 +139,8 @@ function MitigationPage() {
         />
         <div className="flex gap-2">
           {!plan && activeTab === 'LATEST' && (
-             <button onClick={handleGenerate} disabled={generating} className="px-5 py-2.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
-               {generating ? 'Generating AI Plan...' : 'Generate New Plan'}
+             <button onClick={handleGenerate} disabled={generating} className="px-6 py-3 dark-pro-gradient text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2">
+               {generating ? 'Generating AI Plan...' : 'Generate AI Action Plan'}
              </button>
           )}
           {plan && activeTab === 'LATEST' && (
@@ -209,14 +209,14 @@ function MitigationPage() {
            </div>
            <h3 className="text-xl font-bold text-slate-900 mb-2">No Active Mitigation Plan</h3>
            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Generate one to receive highly specific, action-oriented recommendations based on your unique risk profile.</p>
-           <button onClick={handleGenerate} disabled={generating} className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors mx-auto flex items-center justify-center gap-2">
+           <button onClick={handleGenerate} disabled={generating} className="px-8 py-3.5 dark-pro-gradient shadow-lg shadow-slate-900/20 text-white font-bold rounded-xl hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 transition-all mx-auto flex items-center justify-center gap-2">
              {generating && (
                <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                </svg>
              )}
-             {generating ? 'Processing Risk Data...' : 'Generate AI Plan Now'}
+             {generating ? 'Processing Risk Intelligence...' : 'Generate Advanced AI Plan Now'}
            </button>
         </div>
       )}
@@ -224,20 +224,21 @@ function MitigationPage() {
       {activeTab === 'LATEST' && plan && (
         <div className="space-y-6">
            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-             <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">Status</p><StatusBadge label={plan.planStatus} variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} /></div>
-             <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total Tasks</p><p className="text-3xl font-black text-slate-900">{plan.totalRecommendations}</p></div>
-             <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Ongoing</p><p className="text-3xl font-black text-amber-600">{plan.ongoingCount}</p></div>
-             <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Completed</p><p className="text-3xl font-black text-green-600">{plan.completedCount}</p></div>
+             <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Status</p><StatusBadge label={plan.planStatus} variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} /></div>
+             <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Total Tasks</p><p className="text-4xl font-extrabold text-slate-900 heading-font">{plan.totalRecommendations}</p></div>
+             <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Ongoing</p><p className="text-4xl font-extrabold text-slate-600 heading-font">{plan.ongoingCount}</p></div>
+             <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Completed</p><p className="text-4xl font-extrabold text-emerald-500 heading-font">{plan.completedCount}</p></div>
            </div>
 
            <div className="space-y-5">
-             <h3 className="text-lg font-bold text-slate-800">Actionable Recommendations</h3>
+              <h3 className="text-xl font-extrabold text-slate-800 heading-font tracking-tight">Actionable Recommendations</h3>
              {plan.recommendations.length === 0 ? (
                 <div className="text-center p-8 bg-white border border-slate-200 rounded-2xl text-slate-500 font-medium">All recommendations deleted from this plan.</div>
              ) : (
                 plan.recommendations.map((rec, index) => (
-                  <div key={rec._id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex flex-col md:flex-row justify-between gap-6 mb-5">
+                  <div key={rec._id} className="bg-white/90 glass-panel p-6 rounded-3xl border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50/50 rounded-full blur-3xl -z-10 translate-x-10 -translate-y-10 group-hover:bg-slate-100/60 transition-colors"></div>
+                    <div className="flex flex-col md:flex-row justify-between gap-6 mb-5 relative z-10">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">{index + 1}</span>
