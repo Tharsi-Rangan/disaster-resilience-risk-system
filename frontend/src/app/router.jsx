@@ -1,26 +1,35 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+
 import AppShell from "../components/layout/AppShell";
+
+import ProtectedRoute from "../routes/ProtectedRoute";
+import RoleRoute from "../routes/RoleRoute";
+
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import VerifyEmailPage from "../pages/auth/VerifyEmailPage";
 import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
+
 import DashboardPage from "../pages/contractor/DashboardPage";
-import ProjectsPage from "../pages/contractor/ProjectsPage";
 import ProjectCreatePage from "../pages/contractor/ProjectCreatePage";
 import ProjectDetailsPage from "../pages/contractor/ProjectDetailsPage";
 import ProjectEditPage from "../pages/contractor/ProjectEditPage";
-import RiskDataPage from "../pages/contractor/RiskDataPage";
-import AssessmentPage from "../pages/contractor/AssessmentPage";
 import MitigationPage from "../pages/contractor/MitigationPage";
+import AssessmentPage from "../pages/contractor/AssessmentPage";
+
+// add these only if these files already exist in your project
+import ProjectsPage from "../pages/contractor/ProjectsPage";
+import RiskDataPage from "../pages/contractor/RiskDataPage";
+
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import AdminProjectsPage from "../pages/admin/AdminProjectsPage";
 import AdminAssessmentsPage from "../pages/admin/AdminAssessmentsPage";
 import AdminMitigationsPage from "../pages/admin/AdminMitigationsPage";
+
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import NotFoundPage from "../pages/NotFoundPage";
-import ProtectedRoute from "../routes/ProtectedRoute";
-import RoleRoute from "../routes/RoleRoute";
+
 import { USER_ROLES } from "../utils/constants";
 
 const router = createBrowserRouter([
@@ -59,6 +68,7 @@ const router = createBrowserRouter([
             index: true,
             element: <Navigate to="/dashboard" replace />,
           },
+
           {
             path: "dashboard",
             element: (
@@ -67,6 +77,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "projects",
             element: (
@@ -75,6 +86,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "projects/new",
             element: (
@@ -83,6 +95,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "projects/:id",
             element: (
@@ -91,6 +104,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "projects/:id/edit",
             element: (
@@ -99,6 +113,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "projects/:id/risk-data",
             element: (
@@ -107,6 +122,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "projects/:id/assessment",
             element: (
@@ -115,6 +131,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "projects/:id/mitigation",
             element: (
@@ -123,6 +140,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "admin",
             element: (
@@ -131,6 +149,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "admin/projects",
             element: (
@@ -139,6 +158,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "admin/assessments",
             element: (
@@ -147,6 +167,7 @@ const router = createBrowserRouter([
               </RoleRoute>
             ),
           },
+
           {
             path: "admin/mitigations",
             element: (

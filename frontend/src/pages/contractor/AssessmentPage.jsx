@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import AssessmentCard from "../../components/assessments/AssessmentCard";
 import AssessmentHistoryTable from "../../components/assessments/AssessmentHistoryTable";
 import {
@@ -8,16 +9,17 @@ import {
   deleteAssessment,
 } from "../../services/assessmentService";
 
-export default function AssessmentsPage() {
+export default function AssessmentPage() {
+  const { id: projectId } = useParams();
+
   const [latest, setLatest] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // temporary testing project id
-  const projectId = "65f000000000000000000001";
-
   const loadAssessments = async () => {
+    if (!projectId) return;
+
     try {
       setLoading(true);
       setMessage("");
@@ -25,8 +27,8 @@ export default function AssessmentsPage() {
       const latestData = await getLatestAssessment(projectId);
       const historyData = await getAssessmentHistory(projectId);
 
-      setLatest(latestData);
-      setHistory(historyData || []);
+      setLatest(latestData || null);
+      setHistory(Array.isArray(historyData) ? historyData : []);
     } catch (error) {
       setMessage(error.response?.data?.message || "Failed to load assessments");
     } finally {
@@ -35,15 +37,27 @@ export default function AssessmentsPage() {
   };
 
   useEffect(() => {
-    loadAssessments();
-  }, []);
+    if (projectId) {
+      loadAssessments();
+    }
+  }, [projectId]);
 
   const handleRunAssessment = async () => {
+    if (!projectId) {
+      setMessage("Project ID not found");
+      return;
+    }
+
     try {
       setLoading(true);
       setMessage("");
 
-      await runAssessment(projectId);
+      const result = await runAssessment(projectId);
+
+      if (result?.assessment) {
+        setLatest(result.assessment);
+      }
+
       setMessage("Assessment completed successfully");
       await loadAssessments();
     } catch (error) {
@@ -53,12 +67,12 @@ export default function AssessmentsPage() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (assessmentId) => {
     try {
       setLoading(true);
       setMessage("");
 
-      await deleteAssessment(id);
+      await deleteAssessment(assessmentId);
       setMessage("Assessment deleted successfully");
       await loadAssessments();
     } catch (error) {
@@ -68,10 +82,18 @@ export default function AssessmentsPage() {
     }
   };
 
+  if (!projectId) {
+    return (
+      <div className="p-6">
+        <p className="text-sm text-red-500">Project ID not found</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-col items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-sm md:flex-row md:items-center">
+    <div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
               Risk Assessment & Scoring Engine
@@ -84,19 +106,24 @@ export default function AssessmentsPage() {
           <button
             onClick={handleRunAssessment}
             disabled={loading}
-            className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+            className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
           >
             {loading ? "Processing..." : "Run Assessment"}
           </button>
         </div>
+      </div>
 
-        {message && (
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-            {message}
-          </div>
-        )}
+      {message && (
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-sm text-slate-600">{message}</p>
+        </div>
+      )}
 
+      <div className="mt-6">
         <AssessmentCard latest={latest} />
+      </div>
+
+      <div className="mt-6">
         <AssessmentHistoryTable history={history} onDelete={handleDelete} />
       </div>
     </div>
