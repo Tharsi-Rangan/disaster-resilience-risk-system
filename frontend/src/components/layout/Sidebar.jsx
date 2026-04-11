@@ -1,30 +1,47 @@
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
 import { APP_NAME, USER_ROLES } from '../../utils/constants'
-import { LayoutDashboard, FolderKanban, PlusSquare, ShieldAlert, GitBranch, LogOut, ChevronRight } from 'lucide-react'
+import {
+  LayoutDashboard,
+  FolderKanban,
+  PlusSquare,
+  ShieldAlert,
+  GitBranch,
+  Activity,
+  ChevronRight,
+} from 'lucide-react'
 
 function Sidebar() {
   const { user } = useAuth()
+  const normalizedRole = String(user?.role || '').trim().toUpperCase()
+  const roleLabel = normalizedRole || 'USER'
+  const roleBadgeClass =
+    roleLabel === USER_ROLES.ADMIN
+      ? 'border-rose-300/40 bg-rose-500/20 text-rose-100'
+      : 'border-blue-300/40 bg-blue-500/20 text-blue-100'
 
   const contractorLinks = [
     { label: 'Dashboard', to: '/dashboard', end: true, icon: LayoutDashboard },
     { label: 'Projects', to: '/projects', end: true, icon: FolderKanban },
-    { label: 'Create Project', to: '/projects/new', end: true, icon: PlusSquare },
+    { label: 'Risk Data', to: '/projects/risk-data', end: true, icon: Activity },
+    { label: 'Assessments', to: '/projects/assessments', end: true, icon: ShieldAlert },
+    { label: 'Mitigations', to: '/projects/mitigations', end: true, icon: GitBranch },
   ]
 
   const adminLinks = [
     { label: 'Admin Dashboard', to: '/admin', end: true, icon: LayoutDashboard },
     { label: 'Projects', to: '/admin/projects', end: true, icon: FolderKanban },
-    { label: 'Assessments', to: '/admin/assessments', end: true, icon: ShieldAlert },
-    { label: 'Mitigations', to: '/admin/mitigations', end: true, icon: GitBranch },
+    { label: 'All Risk Data', to: '/admin/risk-data/projects', end: true, icon: Activity },
+    { label: 'Assessments Monitor', to: '/admin/assessments', end: true, icon: ShieldAlert },
+    { label: 'Mitigations Monitor', to: '/admin/mitigations', end: true, icon: GitBranch },
   ]
 
   const links = user?.role === USER_ROLES.ADMIN ? adminLinks : contractorLinks
 
   return (
     <aside className="fixed inset-y-0 left-0 w-72 flex-col dark-pro-gradient shadow-[4px_0_24px_rgba(0,0,0,0.15)] hidden lg:flex z-50 overflow-hidden">
-      <div className="border-b border-slate-900/50 px-6 py-6 mb-2">
-        <div className="flex items-center gap-3">
+      <div className="border-b border-slate-900/50 px-6 py-5 mb-1.5">
+        <div className="flex items-center gap-2.5">
           <div className="bg-white/10 p-2 rounded-xl backdrop-blur-sm border border-white/10">
             <span className="text-2xl">🏗️</span>
           </div>
@@ -33,10 +50,17 @@ function Sidebar() {
             <p className="text-xs text-slate-200 mt-0.5 opacity-80 font-medium">Risk Control Platform</p>
           </div>
         </div>
+
+        <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-300/90">Current Access Role</p>
+          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${roleBadgeClass}`}>
+            {roleLabel}
+          </span>
+        </div>
       </div>
 
-      <nav className="space-y-2 p-5 flex-1 relative z-10 overflow-y-auto scrollbar-hide">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400/80 mb-3 px-3">Main Menu</p>
+      <nav className="space-y-2 p-2 flex-1 relative z-10 overflow-y-auto scrollbar-hide">
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400/80 mb-3 px-5">Main Menu</p>
         {links.map((link) => {
           const Icon = link.icon
           return (
@@ -63,24 +87,13 @@ function Sidebar() {
           )
         })}
 
-        {/* Quick Action Button for Sidebar */}
-        <div className="mt-8 px-2">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-500/20 to-blue-600/10 border border-slate-400/20 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                <h4 className="text-sm font-bold text-white mb-1 relative z-10">Have a new plan?</h4>
-                <p className="text-xs text-slate-200 mb-4 relative z-10">Setup a new risk framework node.</p>
-                <Link to="/projects/new" className="flex items-center justify-center gap-2 w-full py-2 bg-slate-500 hover:bg-slate-400 text-white text-xs font-bold rounded-xl transition-colors relative z-10 shadow-sm">
-                    <PlusSquare className="w-4 h-4" /> 
-                    New Project
-                </Link>
-            </div>
-        </div>
+        
       </nav>
 
-      <div className="p-4 mt-auto mb-4">
-        <div className="bg-white/5 rounded-2xl p-4 border border-white/10 w-full backdrop-blur-sm shadow-inner">
+      <div className="p-4 mt-auto mb-3">
+        <div className="bg-white/5 rounded-2xl p-3.5 border border-white/10 w-full backdrop-blur-sm shadow-inner">
            <p className="text-xs text-slate-200 uppercase tracking-widest font-bold mb-2">System Status</p>
-           <div className="flex items-center gap-3 bg-white/5 rounded-xl p-2 px-3 border border-slate-500/20">
+           <div className="flex items-center gap-2.5 bg-white/5 rounded-xl p-2 px-3 border border-slate-500/20">
              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"></div>
              <p className="text-sm font-semibold text-white">All Systems Nominal</p>
            </div>
