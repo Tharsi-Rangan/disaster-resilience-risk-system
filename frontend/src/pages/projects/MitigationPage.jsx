@@ -10,10 +10,14 @@ import {
   deleteMitigationPlan,
   getMitigationHistory
 } from '../../services/mitigationService'
+import useAuth from '../../hooks/useAuth'
 
 const isValidProjectId = (projectId) => /^[a-f\d]{24}$/i.test(String(projectId || ''))
 
 function MitigationPage() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
+
   const navigate = useNavigate()
   const { id: projectId } = useParams()
   const [activeTab, setActiveTab] = useState('LATEST') // 'LATEST' | 'HISTORY'
@@ -156,7 +160,7 @@ function MitigationPage() {
                {generating ? 'Generating AI Plan...' : 'Generate New Plan'}
              </button>
           )}
-          {plan && activeTab === 'LATEST' && (
+          {plan && activeTab === 'LATEST' && isAdmin && (
             <button onClick={handleDeletePlan} className="px-4 py-2.5 bg-red-50 text-red-600 text-sm font-bold rounded-xl hover:bg-red-100 border border-red-200 transition-colors">
               Delete Plan
             </button>
