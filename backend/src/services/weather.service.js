@@ -40,6 +40,9 @@ async function fetchFromOpenWeather({ lat, lng }) {
     humidity: toNumber(data?.main?.humidity, 0),
     cloudiness: toNumber(data?.clouds?.all, 0),
     rainfall: toNumber(rainfallRaw, 0),
+    pressure: toNumber(data?.main?.pressure, null), // hPa
+    visibility: toNumber(data?.visibility, null), // meters
+    weatherCode: data?.weather?.[0]?.id || null, // WMO weather code (id field)
     source: "OpenWeather",
   };
 }
@@ -63,6 +66,9 @@ async function fetchFromOpenMeteo({ lat, lng }) {
     humidity: toNumber(c.relative_humidity_2m, 0),
     cloudiness: toNumber(c.cloud_cover, 0),
     rainfall: toNumber(c.precipitation, 0),
+    pressure: null, // Not available in Open-Meteo current endpoint
+    visibility: null, // Not available in Open-Meteo current endpoint
+    weatherCode: null, // Not available in Open-Meteo current endpoint (would need weather_code param)
     source: "OpenMeteo",
   };
 }
