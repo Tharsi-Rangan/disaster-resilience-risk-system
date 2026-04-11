@@ -16,6 +16,7 @@ export default function AssessmentPage() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("info");
 
   const loadAssessments = async () => {
     if (!projectId) return;
@@ -24,13 +25,16 @@ export default function AssessmentPage() {
       setLoading(true);
       setMessage("");
 
-      const latestData = await getLatestAssessment(projectId);
-      const historyData = await getAssessmentHistory(projectId);
+      const [latestData, historyData] = await Promise.all([
+        getLatestAssessment(projectId),
+        getAssessmentHistory(projectId),
+      ]);
 
       setLatest(latestData || null);
       setHistory(Array.isArray(historyData) ? historyData : []);
     } catch (error) {
       setMessage(error.response?.data?.message || "Failed to load assessments");
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -45,6 +49,7 @@ export default function AssessmentPage() {
   const handleRunAssessment = async () => {
     if (!projectId) {
       setMessage("Project ID not found");
+      setMessageType("error");
       return;
     }
 
@@ -59,9 +64,12 @@ export default function AssessmentPage() {
       }
 
       setMessage("Assessment completed successfully");
+      setMessageType("success");
+
       await loadAssessments();
     } catch (error) {
       setMessage(error.response?.data?.message || "Failed to run assessment");
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -73,10 +81,14 @@ export default function AssessmentPage() {
       setMessage("");
 
       await deleteAssessment(assessmentId);
+
       setMessage("Assessment deleted successfully");
+      setMessageType("success");
+
       await loadAssessments();
     } catch (error) {
       setMessage(error.response?.data?.message || "Failed to delete assessment");
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -84,14 +96,21 @@ export default function AssessmentPage() {
 
   if (!projectId) {
     return (
-      <div className="p-6">
-        <p className="text-sm text-red-500">Project ID not found</p>
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
+        <p className="text-sm font-medium text-red-700">Project ID not found</p>
       </div>
     );
   }
 
+  const messageStyles =
+    messageType === "success"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : messageType === "error"
+      ? "border-red-200 bg-red-50 text-red-700"
+      : "border-slate-200 bg-white text-slate-600";
+
   return (
-    <div>
+    <div className="space-y-6">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -101,12 +120,15 @@ export default function AssessmentPage() {
             <p className="mt-1 text-sm text-slate-500">
               Component 3 — Run and monitor infrastructure risk
             </p>
+            <p className="mt-2 text-xs text-slate-400">
+              Project ID: {projectId}
+            </p>
           </div>
 
           <button
             onClick={handleRunAssessment}
             disabled={loading}
-            className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
+            className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Processing..." : "Run Assessment"}
           </button>
@@ -114,18 +136,20 @@ export default function AssessmentPage() {
       </div>
 
       {message && (
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-slate-600">{message}</p>
+        <div className={`rounded-2xl border p-4 shadow-sm ${messageStyles}`}>
+          <p className="text-sm font-medium">{message}</p>
         </div>
       )}
 
-      <div className="mt-6">
-        <AssessmentCard latest={latest} />
-      </div>
+      {loading && !latest && history.length === 0 && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-sm text-slate-500">Loading assessment data...</p>
+        </div>
+      )}
 
-      <div className="mt-6">
-        <AssessmentHistoryTable history={history} onDelete={handleDelete} />
-      </div>
+      <AssessmentCard latest={latest} />
+
+      <AssessmentHistoryTable history={history} onDelete={handleDelete} />
     </div>
   );
 }
