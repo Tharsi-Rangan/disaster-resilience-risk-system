@@ -36,11 +36,22 @@ function SystemInsights({ snapshot }) {
   }
 
   // Earthquake analysis
-  if (snapshot.earthquakeCount === 0) {
+  const noSeismicMetrics =
+    Number(snapshot.earthquakeCount || 0) === 0 &&
+    snapshot.maxEarthquakeMagnitude == null &&
+    snapshot.nearestEarthquakeDistanceKm == null
+
+  if (noSeismicMetrics) {
+    insights.push({
+      type: 'warning',
+      icon: AlertCircle,
+      text: 'Seismic data may be unavailable or no events detected.'
+    })
+  } else if (snapshot.earthquakeCount === 0) {
     insights.push({
       type: 'safe',
       icon: CheckCircle,
-      text: 'No recent seismic activity in the monitored region.'
+      text: 'No recent seismic activity detected.'
     })
   } else if (snapshot.earthquakeCount > 0) {
     const maxMag = snapshot.maxEarthquakeMagnitude || 0
