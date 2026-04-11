@@ -8,10 +8,6 @@
     "dev": "nodemon server.js"
   },
 
-   "jest": {
-    "testEnvironment": "node"
-  },
-
   "keywords": [],
   "author": "",
   "license": "ISC",

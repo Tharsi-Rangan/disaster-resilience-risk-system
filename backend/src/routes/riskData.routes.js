@@ -6,10 +6,6 @@ const requireRole = require("../middleware/role.middleware");
 
 const controller = require("../controllers/riskData.controller");
 
-/* RiskProject CRUD routes */
-const riskProjectRoutes = require("./riskProject.routes");
-router.use("/projects", riskProjectRoutes);
-
 
 // POST fetch snapshot (requires login)
 router.post(

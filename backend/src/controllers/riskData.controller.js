@@ -32,7 +32,19 @@ const fetchRiskData = async (req, res) => {
       }
     }
 
-    const snapshot = await riskDataService.createSnapshot({ projectId, lat, lng });
+    // Optional earthquake metadata (with safe defaults)
+    const earthquakeWindowDays = req.body.earthquakeWindowDays;
+    const earthquakeRadiusKm = req.body.earthquakeRadiusKm;
+    const minEarthquakeMagnitude = req.body.minEarthquakeMagnitude;
+
+    const snapshot = await riskDataService.createSnapshot({ 
+      projectId, 
+      lat, 
+      lng,
+      earthquakeWindowDays,
+      earthquakeRadiusKm,
+      minEarthquakeMagnitude,
+    });
 
     return res.status(201).json({ message: "Risk data fetched ✅", snapshot });
   } catch (err) {

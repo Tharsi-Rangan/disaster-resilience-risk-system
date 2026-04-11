@@ -13,10 +13,10 @@ function computeFloodRiskIndex({ rainfall = 0, humidity = 0, cloudiness = 0 }) {
   return Math.round(Math.min(total, 100));
 }
 
-async function fetchEarthquakeCount({ lat, lng }) {
-  // USGS past 30 days, radius ~200km
+async function fetchEarthquakeCount({ lat, lng, windowDays = 30, radiusKm = 200, minMagnitude = 3 }) {
+  // USGS query with configurable parameters
   const end = new Date();
-  const start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const start = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
 
   const format = (d) => d.toISOString().split("T")[0];
 
@@ -28,8 +28,8 @@ async function fetchEarthquakeCount({ lat, lng }) {
       endtime: format(end),
       latitude: lat,
       longitude: lng,
-      maxradiuskm: 200,
-      minmagnitude: 3,
+      maxradiuskm: radiusKm,
+      minmagnitude: minMagnitude,
     },
     timeout: 20000, // increased timeout to reduce failures
   });
@@ -47,7 +47,7 @@ async function canFetchNow(projectId, cooldownMinutes = 5) {
   return diffMin >= cooldownMinutes;
 }
 
-async function createSnapshot({ projectId, lat, lng }) {
+async function createSnapshot({ projectId, lat, lng, earthquakeWindowDays, earthquakeRadiusKm, minEarthquakeMagnitude }) {
   // Safety validation (in case controller didn’t pass proper values)
   if (typeof lat !== "number" || typeof lng !== "number") {
     const err = new Error("Valid lat/lng required to fetch risk data");
@@ -68,10 +68,16 @@ async function createSnapshot({ projectId, lat, lng }) {
   // Weather (OpenWeather or fallback provider depending on your weather.service.js)
   const weather = await fetchOpenWeather({ lat, lng });
 
-  // Earthquake count (fallback to 0 if USGS is down)
+  // Earthquake count with configurable parameters (fallback to 0 if USGS is down)
   let earthquakeCount = 0;
   try {
-    earthquakeCount = await fetchEarthquakeCount({ lat, lng });
+    earthquakeCount = await fetchEarthquakeCount({ 
+      lat, 
+      lng,
+      windowDays: earthquakeWindowDays,
+      radiusKm: earthquakeRadiusKm,
+      minMagnitude: minEarthquakeMagnitude,
+    });
   } catch (e) {
     earthquakeCount = 0;
   }
@@ -89,8 +95,17 @@ async function createSnapshot({ projectId, lat, lng }) {
     temperature: weather?.temperature ?? 0,
     humidity: weather?.humidity ?? 0,
     cloudiness: weather?.cloudiness ?? 0,
+    pressure: weather?.pressure ?? null, // hPa
+    visibility: weather?.visibility ?? null, // meters
+    weatherCode: weather?.weatherCode ?? null, // WMO code
 
     earthquakeCount,
+    maxEarthquakeMagnitude: null, // Will be populated by earthquake service if needed
+    nearestEarthquakeDistanceKm: null, // Will be populated by earthquake service if needed
+    earthquakeWindowDays: earthquakeWindowDays ?? 30,
+    earthquakeRadiusKm: earthquakeRadiusKm ?? 200,
+    minEarthquakeMagnitude: minEarthquakeMagnitude ?? 3,
+    
     floodRiskIndex,
     fetchedAt: new Date(),
 

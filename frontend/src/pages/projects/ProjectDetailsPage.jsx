@@ -86,6 +86,17 @@ function ProjectDetailsPage() {
   }, []);
 
   useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        setIsLoading(true);
+        const data = await projectService.getProjectById(id);
+        setProject(data.project || data);
+      } catch (err) {
+        setError(err?.message || 'Failed to load project details.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
     fetchProject();
   }, [id]);
 
@@ -103,7 +114,7 @@ function ProjectDetailsPage() {
         if (!isCancelled && key) {
           setMapsApiKey((prev) => prev || key);
         }
-      } catch (err) {
+      } catch {
         // Keep map optional if key fetch fails.
       } finally {
         if (!isCancelled) {
@@ -118,18 +129,6 @@ function ProjectDetailsPage() {
       isCancelled = true;
     };
   }, []);
-
-  const fetchProject = async () => {
-    try {
-      setIsLoading(true);
-      const data = await projectService.getProjectById(id);
-      setProject(data.project || data);
-    } catch (err) {
-      setError(err?.message || 'Failed to load project details.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
@@ -291,7 +290,7 @@ function ProjectDetailsPage() {
 
         {/* Right Column: Map & Location */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col h-[500px]">
+          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col h-125">
             <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
               <MapPin className="w-5 h-5 text-indigo-500" />
               <h3 className="font-bold text-slate-800">Location Details</h3>
