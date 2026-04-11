@@ -8,6 +8,7 @@ function AdminMitigationsPage() {
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
 
   useEffect(() => {
@@ -31,10 +32,13 @@ function AdminMitigationsPage() {
     
     try {
       setDeletingId(id)
+      setError(null)
       await deleteMitigationPlan(id)
       setPlans(prev => prev.filter(plan => plan._id !== id))
+      setSuccess("Mitigation plan deleted successfully.")
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      window.alert(err.response?.data?.message || 'Failed to delete plan')
+      setError(err.response?.data?.message || 'Failed to delete plan')
     } finally {
       setDeletingId(null)
     }
@@ -62,9 +66,22 @@ function AdminMitigationsPage() {
       />
 
       {error && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3">
-           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-           <span className="font-medium">{error}</span>
+        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+             <span className="font-medium">{error}</span>
+           </div>
+           <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 px-2 font-bold text-lg">&times;</button>
+        </div>
+      )}
+
+      {success && (
+        <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+             <span className="font-medium">{success}</span>
+           </div>
+           <button onClick={() => setSuccess(null)} className="text-green-500 hover:text-green-700 px-2 font-bold text-lg">&times;</button>
         </div>
       )}
 
@@ -130,14 +147,24 @@ function AdminMitigationsPage() {
                       variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} 
                     />
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleDelete(plan._id)}
-                      disabled={deletingId === plan._id}
-                      className="text-red-500 hover:text-red-700 font-medium disabled:opacity-50 flex items-center justify-end gap-1 ml-auto"
-                    >
-                      {deletingId === plan._id ? 'Deleting...' : 'Delete Plan'}
-                    </button>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-4">
+                      {plan.projectId?._id && (
+                        <Link
+                          to={`/projects/${plan.projectId._id}/mitigation`}
+                          className="text-blue-600 hover:text-blue-800 font-bold hover:underline"
+                        >
+                          View Details
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => handleDelete(plan._id)}
+                        disabled={deletingId === plan._id}
+                        className="text-red-500 hover:text-red-700 font-medium disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {deletingId === plan._id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
