@@ -23,11 +23,24 @@ const recommendationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["PENDING", "DONE"],
+      enum: ["PENDING", "ONGOING", "COMPLETED"],
       default: "PENDING",
     },
-  },
-  { _id: false }
+    actionNote: {
+      type: String,
+      default: "",
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    updatedAt: {
+      type: Date,
+      default: null,
+    },
+  }
+  // Removed { _id: false } so Mongoose auto-generates _ids for recommendations to help with individual updates
 );
 
 /*
@@ -59,6 +72,17 @@ const mitigationPlanSchema = new mongoose.Schema(
       enum: ["LOW", "MEDIUM", "HIGH"],
       required: true,
     },
+
+    planStatus: {
+      type: String,
+      enum: ["PENDING", "IN_PROGRESS", "COMPLETED"],
+      default: "PENDING",
+    },
+
+    totalRecommendations: { type: Number, default: 0 },
+    pendingCount: { type: Number, default: 0 },
+    ongoingCount: { type: Number, default: 0 },
+    completedCount: { type: Number, default: 0 },
 
     recommendations: {
       type: [recommendationSchema],
