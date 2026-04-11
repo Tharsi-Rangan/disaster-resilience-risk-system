@@ -6,16 +6,16 @@ function Sidebar() {
   const { user } = useAuth()
 
   const contractorLinks = [
-    { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Projects', to: '/projects' },
-    { label: 'Create Project', to: '/projects/new' },
+    { label: 'Dashboard', to: '/dashboard', end: true },
+    { label: 'Projects', to: '/projects', end: true },
+    { label: 'Create Project', to: '/projects/new', end: true },
   ]
 
   const adminLinks = [
-    { label: 'Admin Dashboard', to: '/admin' },
-    { label: 'Projects', to: '/admin/projects' },
-    { label: 'Assessments', to: '/admin/assessments' },
-    { label: 'Mitigations', to: '/admin/mitigations' },
+    { label: 'Admin Dashboard', to: '/admin', end: true },
+    { label: 'Projects', to: '/admin/projects', end: true },
+    { label: 'Assessments', to: '/admin/assessments', end: true },
+    { label: 'Mitigations', to: '/admin/mitigations', end: true },
   ]
 
   const links = user?.role === USER_ROLES.ADMIN ? adminLinks : contractorLinks
@@ -32,6 +32,7 @@ function Sidebar() {
           <NavLink
             key={link.to}
             to={link.to}
+            end={link.end}
             className={({ isActive }) =>
               `block rounded-xl px-4 py-3 text-sm font-medium transition ${
                 isActive
