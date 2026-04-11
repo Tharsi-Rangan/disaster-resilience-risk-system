@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import PageHeader from '../../components/common/PageHeader'
+import { useNavigate } from 'react-router-dom'
+import { ShieldCheck, Target, AlertTriangle, Activity, Search, Filter, RefreshCw, Trash2, FolderKanban } from 'lucide-react'
 import { projectService } from '../../services/projectService'
 import { deleteAssessment, getLatestAssessment } from '../../services/assessmentService'
 import getApiErrorMessage from '../../utils/getApiErrorMessage'
@@ -28,6 +29,7 @@ const formatDateTime = (value) => {
 }
 
 function AdminAssessmentsPage() {
+  const navigate = useNavigate()
   const [rows, setRows] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -157,63 +159,77 @@ function AdminAssessmentsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Admin Assessments"
-        description="Monitor the latest risk assessments across all projects."
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Total Projects</p>
-          <p className="mt-2 text-2xl font-semibold text-slate-900">{stats.totalProjects}</p>
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12 w-full">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-6 shadow-sm hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-slate-100 text-slate-600 rounded-2xl shadow-inner group-hover:bg-slate-800 group-hover:text-white transition-colors"><Target className="w-6 h-6" /></div>
+            <p className="text-3xl font-extrabold text-slate-900 heading-font">{stats.totalProjects}</p>
+          </div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Projects</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Projects Assessed</p>
-          <p className="mt-2 text-2xl font-semibold text-sky-700">{stats.assessedProjects}</p>
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-6 shadow-sm hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-sky-50 text-sky-600 rounded-2xl shadow-inner group-hover:bg-sky-500 group-hover:text-white transition-colors"><ShieldCheck className="w-6 h-6" /></div>
+            <p className="text-3xl font-extrabold text-sky-600 heading-font">{stats.assessedProjects}</p>
+          </div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Projects Assessed</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">High Risk Projects</p>
-          <p className="mt-2 text-2xl font-semibold text-rose-600">{stats.highRiskCount}</p>
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-6 shadow-sm hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl shadow-inner group-hover:bg-rose-500 group-hover:text-white transition-colors"><AlertTriangle className="w-6 h-6" /></div>
+            <p className="text-3xl font-extrabold text-rose-600 heading-font">{stats.highRiskCount}</p>
+          </div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">High Risk Projects</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Average Risk Score</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-600">{stats.avgRiskScore}</p>
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-6 shadow-sm hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl shadow-inner group-hover:bg-amber-500 group-hover:text-white transition-colors"><Activity className="w-6 h-6" /></div>
+            <p className="text-3xl font-extrabold text-amber-600 heading-font">{stats.avgRiskScore}</p>
+          </div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Average Risk Score</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-3 md:grid-cols-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search by project, type, or location"
-            className="md:col-span-3 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-500"
-          />
+      <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-5 shadow-md">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="relative w-full md:flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search assessment database by project, type, or coordinates..."
+              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:bg-white transition-all text-sm font-semibold shadow-inner"
+            />
+          </div>
 
-          <select
-            value={riskFilter}
-            onChange={(event) => setRiskFilter(event.target.value)}
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-500"
-          >
-            {RISK_FILTERS.map((option) => (
-              <option key={option} value={option}>
-                {option === 'ALL' ? 'All Risk Levels' : option}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div className="relative w-full sm:w-56">
+              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <select
+                value={riskFilter}
+                onChange={(event) => setRiskFilter(event.target.value)}
+                className="w-full pl-11 pr-8 py-3 bg-white border border-slate-200 rounded-2xl appearance-none focus:outline-none focus:ring-2 focus:ring-slate-500 cursor-pointer text-sm font-bold text-slate-700 shadow-sm"
+              >
+                {RISK_FILTERS.map((option) => (
+                  <option key={option} value={option}>
+                    {option === 'ALL' ? 'All Risk Levels' : option}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <div className="mt-3 flex justify-end">
-          <button
-            type="button"
-            onClick={() => fetchAssessmentRows(true)}
-            disabled={isLoading || isRefreshing}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-          </button>
+            <button
+              type="button"
+              onClick={() => fetchAssessmentRows(true)}
+              disabled={isLoading || isRefreshing}
+              className="inline-flex items-center justify-center py-3 px-5 rounded-2xl bg-slate-900 border border-slate-800 text-white font-bold text-sm shadow-md shadow-slate-900/20 hover:shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:hover:bg-slate-900 focus:ring-2 focus:ring-slate-500 w-full sm:w-auto gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Syncing...' : 'Sync'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -229,63 +245,90 @@ function AdminAssessmentsPage() {
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel shadow-md overflow-hidden">
         {isLoading ? (
-          <div className="p-6 text-sm text-slate-500">Loading assessment monitoring data...</div>
+          <div className="flex justify-center p-12">
+            <div className="flex flex-col items-center gap-4">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800"></div>
+              <p className="text-sm text-slate-500 font-bold animate-pulse tracking-widest uppercase">Fetching Global Nodes...</p>
+            </div>
+          </div>
         ) : filteredRows.length === 0 ? (
-          <div className="p-6 text-sm text-slate-500">No projects found for the selected filters.</div>
+          <div className="p-16 text-center bg-slate-50">
+             <FolderKanban className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+             <p className="text-lg font-bold text-slate-700 mb-1">No Projects Found</p>
+             <p className="text-sm text-slate-500">Try refining your search or filter parameters.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-4 py-3 font-medium">Project</th>
-                  <th className="px-4 py-3 font-medium">Type</th>
-                  <th className="px-4 py-3 font-medium">Location</th>
-                  <th className="px-4 py-3 font-medium">Risk Score</th>
-                  <th className="px-4 py-3 font-medium">Risk Level</th>
-                  <th className="px-4 py-3 font-medium">Assessed At</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                <tr className="bg-slate-100/50 border-b border-slate-200">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Project Identity</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Schema Type</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Geographical Node</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Risk Metric</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Status Level</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Last Pulse</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Root Actions</th>
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody className="divide-y divide-slate-100/80">
                 {filteredRows.map((row) => {
                   const assessmentId = row?.latest?._id || ''
                   const isDeleting = deletingAssessmentId === assessmentId
+                  const hasProjectRoute = Boolean(row?.projectId)
 
                   return (
-                    <tr key={row.projectId || row.title} className="border-b border-slate-100 text-sm text-slate-700">
-                      <td className="px-4 py-4 align-top font-medium text-slate-900">{row.title}</td>
-                      <td className="px-4 py-4 align-top">{row.projectType}</td>
-                      <td className="px-4 py-4 align-top">{row.location}</td>
-                      <td className="px-4 py-4 align-top font-semibold text-slate-900">
+                    <tr
+                      key={row.projectId || row.title}
+                      className={`group transition-colors ${hasProjectRoute ? 'cursor-pointer hover:bg-slate-50/50' : ''}`}
+                      onClick={() => {
+                        if (!hasProjectRoute) return
+                        navigate(`/projects/${row.projectId}/assessment`)
+                      }}
+                    >
+                      <td className="px-6 py-5 align-top">
+                        <p className="font-extrabold text-slate-900 heading-font text-lg tracking-tight mb-0.5">{row.title}</p>
+                      </td>
+                      <td className="px-6 py-5 align-top">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold capitalize border border-slate-200/60 shadow-sm">{row.projectType}</span>
+                      </td>
+                      <td className="px-6 py-5 align-top text-sm font-medium text-slate-700">
+                        <div className="max-w-[200px] truncate">{row.location}</div>
+                      </td>
+                      <td className="px-6 py-5 align-top font-bold text-slate-900">
                         {row?.latest ? row.latest.riskScore : '-'}
                       </td>
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-6 py-5 align-top">
                         <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getRiskBadgeClass(
-                            row?.latest?.riskLevel
-                          )}`}
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold border shadow-sm tracking-wider uppercase ${getRiskBadgeClass(row?.latest?.riskLevel).replace('bg-', 'bg-opacity-20 bg-').concat(` border-${getRiskBadgeClass(row?.latest?.riskLevel).split(' ')[0].split('-')[1]}-200`)}`}
                         >
                           {row?.latest?.riskLevel || 'NOT ASSESSED'}
                         </span>
                       </td>
-                      <td className="px-4 py-4 align-top text-slate-600">
+                      <td className="px-6 py-5 align-top text-slate-500 text-sm font-medium whitespace-nowrap">
                         {formatDateTime(row?.latest?.createdAt)}
                       </td>
-                      <td className="px-4 py-4 align-top">
+                      <td className="px-6 py-5 align-top text-right">
                         {assessmentId ? (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteAssessment(assessmentId)}
-                            disabled={isDeleting}
-                            className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {isDeleting ? 'Deleting...' : 'Delete'}
-                          </button>
+                          <div className="flex justify-end opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                handleDeleteAssessment(assessmentId)
+                              }}
+                              disabled={isDeleting}
+                              className="p-2 rounded-xl border border-transparent text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 transition-all disabled:opacity-50"
+                              title="Purge Assessment Record"
+                            >
+                              <Trash2 className="w-4 h-4 cursor-pointer" />
+                            </button>
+                          </div>
                         ) : (
-                          <span className="text-xs text-slate-400">-</span>
+                          <span className="text-xs text-slate-300 block text-right pr-4">-</span>
                         )}
                       </td>
                     </tr>

@@ -87,10 +87,18 @@ function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">Login</h1>
-        <p className="mt-2 text-sm text-slate-500">
+    <div className="flex min-h-screen items-center justify-center bg-[#f4f7f9] px-6 relative overflow-hidden">
+      <div className="absolute top-10 left-10 w-96 h-96 bg-slate-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div className="w-full max-w-md rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-10 shadow-xl relative z-10">
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 dark-pro-gradient rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-slate-900/20">
+            🏗️
+          </div>
+        </div>
+        <h1 className="text-3xl font-extrabold text-slate-900 heading-font text-center">Welcome Back</h1>
+        <p className="mt-2 text-sm font-medium text-slate-500 text-center mb-8 tracking-tight">
           Sign in to access the Disaster Resilience Risk System.
         </p>
 
@@ -102,8 +110,8 @@ function LoginPage() {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
-              Email
+            <label htmlFor="email" className="mb-2 block text-xs font-bold text-slate-500 uppercase tracking-widest">
+              Email Address
             </label>
             <input
               id="email"
@@ -111,19 +119,19 @@ function LoginPage() {
               type="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Enter your email"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900"
+              placeholder="name@example.com"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none transition focus:border-slate-500 focus:bg-white focus:ring-2 focus:ring-slate-500/20 font-medium"
             />
           </div>
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="password" className="block text-xs font-bold text-slate-500 uppercase tracking-widest">
                 Password
               </label>
               <Link
                 to="/forgot-password"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="text-xs font-bold text-slate-600 hover:text-slate-500 transition-colors"
               >
                 Forgot password?
               </Link>
@@ -136,24 +144,24 @@ function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter your password"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none transition focus:border-slate-500 focus:bg-white focus:ring-2 focus:ring-slate-500/20 font-medium"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full rounded-xl dark-pro-gradient px-4 py-4 text-sm font-bold text-white transition-all shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/40 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 tracking-wide mt-2"
           >
-            {loading ? 'Signing in...' : 'Login'}
+            {loading ? 'Authenticating User...' : 'Secure Login'}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-slate-600">
+        <div className="mt-8 text-center text-sm font-medium text-slate-500">
           <p>
             Don&apos;t have an account?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-700">
-              Register
+            <Link to="/register" className="font-bold text-slate-600 hover:text-slate-500 transition-colors">
+              Register here
             </Link>
           </p>
         </div>

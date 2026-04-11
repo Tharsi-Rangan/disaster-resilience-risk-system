@@ -21,8 +21,8 @@ function RiskDataToolbar({ onFetch, loading = false, latestFetchedAt = null }) {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-2 bg-indigo-100 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-indigo-600" />
+            <div className="p-2 bg-slate-100 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-slate-600" />
             </div>
             <h2 className="text-lg font-semibold text-slate-900">Live Hazard Snapshot</h2>
           </div>
@@ -45,7 +45,7 @@ function RiskDataToolbar({ onFetch, loading = false, latestFetchedAt = null }) {
           type="button"
           onClick={onFetch}
           disabled={loading}
-          className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-indigo-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-indigo-500 whitespace-nowrap"
+          className="flex items-center justify-center gap-2 rounded-xl bg-slate-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-slate-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-500 whitespace-nowrap"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           {loading ? 'Fetching...' : 'Fetch Latest Data'}

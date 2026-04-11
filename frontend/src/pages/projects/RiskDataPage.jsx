@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, Clock3, Info, X } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Clock3, Database, Info, LineChart, MapPinned, Share2, X } from 'lucide-react'
 import PageHeader from '../../components/common/PageHeader'
 import { riskDataService } from '../../services/riskDataService'
 import useAuth from '../../hooks/useAuth'
@@ -40,19 +40,19 @@ function normalizeRole(roleValue) {
 function Toast({ toast, onClose }) {
   const stylesByType = {
     success: {
-      wrapper: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+      wrapper: 'border-emerald-200/90 bg-emerald-50/95 text-emerald-900',
       icon: <CheckCircle2 className="h-5 w-5 text-emerald-600" />,
     },
     warning: {
-      wrapper: 'border-amber-200 bg-amber-50 text-amber-900',
+      wrapper: 'border-amber-200/90 bg-amber-50/95 text-amber-900',
       icon: <Clock3 className="h-5 w-5 text-amber-600" />,
     },
     error: {
-      wrapper: 'border-red-200 bg-red-50 text-red-900',
+      wrapper: 'border-red-200/90 bg-red-50/95 text-red-900',
       icon: <AlertCircle className="h-5 w-5 text-red-600" />,
     },
     info: {
-      wrapper: 'border-blue-200 bg-blue-50 text-blue-900',
+      wrapper: 'border-blue-200/90 bg-blue-50/95 text-blue-900',
       icon: <Info className="h-5 w-5 text-blue-600" />,
     },
   }
@@ -60,7 +60,9 @@ function Toast({ toast, onClose }) {
   const typeStyle = stylesByType[toast.type] || stylesByType.info
 
   return (
-    <div className={`pointer-events-auto flex gap-3 rounded-xl border px-4 py-3 shadow-sm ${typeStyle.wrapper}`}>
+    <div
+      className={`pointer-events-auto flex gap-3 rounded-2xl border px-4 py-3 shadow-lg shadow-slate-900/5 backdrop-blur ${typeStyle.wrapper}`}
+    >
       <div className="shrink-0">{typeStyle.icon}</div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">{toast.title}</p>
@@ -230,12 +232,12 @@ function RiskDataPage() {
 
   if (pageLoading) {
     return (
-      <div>
+      <div className="space-y-8 pb-10 animate-in fade-in duration-500 max-w-7xl mx-auto">
         <PageHeader
-          title="Disaster Risk Data"
+          title="Disaster Risk Intelligence"
           description="View and manage real-time environmental and seismic data collected for this project."
         />
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-8 shadow-sm">
           <div className="space-y-4">
             <div className="h-10 w-48 animate-pulse rounded-lg bg-slate-200"></div>
             <div className="h-4 w-full animate-pulse rounded-lg bg-slate-100"></div>
@@ -254,18 +256,24 @@ function RiskDataPage() {
   const previousSnapshot = history.length > 1 ? history[1] : null
 
   return (
-    <div>
+    <div className="relative mx-auto max-w-7xl animate-in fade-in space-y-8 pb-10 duration-500">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-24 top-8 h-56 w-56 rounded-full bg-cyan-100/50 blur-3xl" />
+        <div className="absolute right-0 top-52 h-64 w-64 rounded-full bg-emerald-100/40 blur-3xl" />
+      </div>
+
       <PageHeader
-        title="Disaster Risk Data"
+        title="Disaster Risk Intelligence"
         description="View and manage real-time environmental and seismic data collected for this project."
       />
 
-      <ProjectSwitcherCard
-        currentProjectId={projectId}
-        onSwitchProject={handleSwitchProject}
-      />
-
-      <ProjectInfoCard projectId={projectId} onProjectLoaded={handleProjectLoaded} />
+      <div className="grid gap-4 xl:grid-cols-[1fr,1.1fr]">
+        <ProjectSwitcherCard
+          currentProjectId={projectId}
+          onSwitchProject={handleSwitchProject}
+        />
+        <ProjectInfoCard projectId={projectId} onProjectLoaded={handleProjectLoaded} />
+      </div>
 
       <PageContextCard projectId={projectId} />
 
@@ -275,11 +283,13 @@ function RiskDataPage() {
         ))}
       </div>
 
-      <RiskDataToolbar
-        onFetch={handleFetchLatest}
-        loading={fetchLoading}
-        latestFetchedAt={latestSnapshot?.fetchedAt}
-      />
+      <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur">
+        <RiskDataToolbar
+          onFetch={handleFetchLatest}
+          loading={fetchLoading}
+          latestFetchedAt={latestSnapshot?.fetchedAt}
+        />
+      </div>
 
       {latestSnapshot ? (
         <>
@@ -288,46 +298,79 @@ function RiskDataPage() {
             previousSnapshot={previousSnapshot}
           />
 
-          <div className="mb-6 flex flex-wrap gap-3">
-            <MapModal
-              projectLocation={latestSnapshot.projectLocation}
-              projectName={projectOverview?.title || projectOverview?.name || 'Project'}
-            />
-            <WeatherDetailsModal snapshot={latestSnapshot} />
+          <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur">
+            <div className="mb-3 flex items-center gap-2">
+              <MapPinned className="h-4 w-4 text-cyan-700" />
+              <p className="text-sm font-semibold text-slate-700">Operational Tools</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <MapModal
+                projectLocation={latestSnapshot.projectLocation}
+                projectName={projectOverview?.title || projectOverview?.name || 'Project'}
+              />
+              <WeatherDetailsModal snapshot={latestSnapshot} />
+            </div>
           </div>
 
-          <ShareFeatures
-            snapshot={latestSnapshot}
-            history={history}
-            projectName={projectOverview?.title || projectOverview?.name || 'Project'}
-            projectOverview={projectOverview}
-            onFeedback={handleShareFeedback}
-          />
+          <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur">
+            <div className="mb-3 flex items-center gap-2">
+              <Share2 className="h-4 w-4 text-blue-700" />
+              <p className="text-sm font-semibold text-slate-700">Collaboration & Sharing</p>
+            </div>
+            <ShareFeatures
+              snapshot={latestSnapshot}
+              history={history}
+              projectName={projectOverview?.title || projectOverview?.name || 'Project'}
+              projectOverview={projectOverview}
+              onFeedback={handleShareFeedback}
+            />
+          </div>
 
-          <TrendComparison
-            current={latestSnapshot}
-            previous={previousSnapshot}
-          />
+          <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-5 shadow-sm backdrop-blur">
+            <div className="mb-4 flex items-center gap-2">
+              <LineChart className="h-4 w-4 text-violet-700" />
+              <p className="text-sm font-semibold text-slate-700">Trend Intelligence</p>
+            </div>
 
-          <SystemInsights snapshot={latestSnapshot} />
+            <div className="space-y-6">
+              <TrendComparison
+                current={latestSnapshot}
+                previous={previousSnapshot}
+              />
 
-          <RiskTrendChart history={history} />
+              <SystemInsights snapshot={latestSnapshot} />
 
-          <LatestRiskSnapshotCard snapshot={latestSnapshot} />
+              <RiskTrendChart history={history} />
+            </div>
+          </div>
 
-          <RiskHistoryTable
-            history={history}
-            onDelete={canDeleteSnapshots ? handleDeleteSnapshot : null}
-            loading={deleteLoading}
-          />
+          <div className="grid gap-6 xl:grid-cols-[1.05fr,1.35fr]">
+            <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur">
+              <LatestRiskSnapshotCard snapshot={latestSnapshot} />
+            </div>
+
+            <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur">
+              <div className="mb-3 flex items-center gap-2">
+                <Database className="h-4 w-4 text-slate-700" />
+                <p className="text-sm font-semibold text-slate-700">Snapshot Archive</p>
+              </div>
+              <RiskHistoryTable
+                history={history}
+                onDelete={canDeleteSnapshots ? handleDeleteSnapshot : null}
+                loading={deleteLoading}
+              />
+            </div>
+          </div>
         </>
       ) : (
-        <div className="mb-8">
+        <div className="mb-8 rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur">
           <EmptyStateCard onFetch={handleFetchLatest} loading={fetchLoading} />
         </div>
       )}
 
-      <DataSourceInfo snapshot={latestSnapshot} fetchErrorMessage={latestFetchError} />
+      <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur">
+        <DataSourceInfo snapshot={latestSnapshot} fetchErrorMessage={latestFetchError} />
+      </div>
     </div>
   )
 }

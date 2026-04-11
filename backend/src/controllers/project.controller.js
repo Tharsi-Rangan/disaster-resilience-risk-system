@@ -68,6 +68,12 @@ exports.getProjects = async (req, res) => {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit))); // cap at 100
 
     const query = {};
+    const userRole = String(req.user?.role || '').toUpperCase();
+
+    // Contractors can only see their own projects.
+    if (userRole === 'CONTRACTOR') {
+      query.createdBy = req.user._id;
+    }
     if (search) query.title = { $regex: search, $options: "i" };
     if (type) query.projectType = type;
     if (status) {
@@ -104,6 +110,12 @@ exports.getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id).populate("createdBy", "name email");
     if (!project) return res.status(404).json({ message: "Project not found" });
+
+    const userRole = String(req.user?.role || '').toUpperCase();
+    if (userRole !== 'ADMIN' && !project.createdBy.equals(req.user._id)) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
     return res.json(project);
   } catch (err) {
     console.error("getProjectById error:", err);
@@ -120,7 +132,7 @@ exports.updateProject = async (req, res) => {
     if (!project) return res.status(404).json({ message: "Project not found" });
 
     // Authorization check
-    if (req.user.role !== "admin" && !project.createdBy.equals(req.user._id)) {
+    if (String(req.user?.role || '').toUpperCase() !== "ADMIN" && !project.createdBy.equals(req.user._id)) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
@@ -147,7 +159,7 @@ exports.updateProject = async (req, res) => {
 
     // Only admins can change status via PUT
     if (status !== undefined) {
-      if (req.user.role !== "admin") {
+      if (String(req.user?.role || '').toUpperCase() !== "ADMIN") {
         return res.status(403).json({ message: "Only admins can update project status" });
       }
       if (!VALID_STATUSES.includes(status)) {
@@ -171,7 +183,7 @@ exports.deleteProject = async (req, res) => {
     if (!project) return res.status(404).json({ message: "Project not found" });
 
     // Authorization check
-    if (req.user.role !== "admin" && !project.createdBy.equals(req.user._id)) {
+    if (String(req.user?.role || '').toUpperCase() !== "ADMIN" && !project.createdBy.equals(req.user._id)) {
       return res.status(403).json({ message: "Not authorized" });
     }
 

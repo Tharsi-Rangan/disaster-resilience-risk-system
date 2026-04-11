@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Save, ArrowLeft, MapPin, AlertCircle, Map as MapIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import PageHeader from '../../components/common/PageHeader';
 import { projectService } from '../../services/projectService';
 
 const containerStyle = {
@@ -53,7 +52,7 @@ function ProjectMap({ mapsApiKey, formData, onMapLoad, onMapUnmount, onMapClick,
   if (!isLoaded) {
     return (
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -296,35 +295,54 @@ function ProjectCreatePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex items-center gap-4">
+    <div className="relative mx-auto max-w-8xl animate-in fade-in space-y-5 pb-12 duration-500">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-24 top-6 h-56 w-56 rounded-full bg-cyan-100/45 blur-3xl" />
+        <div className="absolute right-0 top-44 h-64 w-64 rounded-full bg-slate-200/35 blur-3xl" />
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur md:p-5">
+        <div className="flex items-start gap-4">
         <Link
           to="/projects"
-          className="p-2 bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm"
+          className="mt-1 rounded-full border border-slate-200 bg-white p-2 shadow-sm transition-colors hover:bg-slate-50"
         >
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </Link>
-        <PageHeader
-          title="Create New Project"
-          description="Enter comprehensive project details and set the precise location."
-        />
+
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Project Setup</p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 heading-font md:text-4xl">
+              Create New Project
+            </h1>
+            <p className="mt-2 text-sm font-medium text-slate-600 md:text-base">
+              Enter comprehensive project details and define an accurate location footprint.
+            </p>
+            <div className="mt-3 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+              Step 1 of 1 • Configure and initialize
+            </div>
+          </div>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_1.55fr] lg:items-start">
         
         {/* Left Column: Form Details */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 space-y-6">
-            <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4">General Information</h3>
+        <div className="order-2 space-y-5 lg:order-2">
+          <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-7 shadow-md backdrop-blur md:p-8">
+            <div className="mb-6 border-b border-slate-200/80 pb-4">
+              <h3 className="text-2xl font-extrabold text-slate-900 heading-font">General Information</h3>
+              <p className="mt-1 text-sm text-slate-500">Fill the mandatory fields to initialize this project node.</p>
+            </div>
             
             {error && (
-              <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-xl border border-red-100">
+              <div className="mb-5 flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-red-700">
                 <AlertCircle className="w-5 h-5" />
                 <p className="text-sm font-medium">{error}</p>
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Project Title *</label>
                 <input
@@ -332,7 +350,7 @@ function ProjectCreatePage() {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-900"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:bg-white transition-all text-slate-900"
                   placeholder="e.g. Marine Drive Extension"
                 />
               </div>
@@ -344,19 +362,19 @@ function ProjectCreatePage() {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows="3"
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-900"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:bg-white transition-all text-slate-900"
                   placeholder="Provide brief details about this project..."
                 ></textarea>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Project Type</label>
                   <select
                     name="projectType"
                     value={formData.projectType}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-900 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M7%2010l5%205%205-5H7z%22%20fill%3D%22%2394a3b8%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:calc(100%-0.5rem)_center]"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:bg-white transition-all text-slate-900 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M7%2010l5%205%205-5H7z%22%20fill%3D%22%2394a3b8%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:calc(100%-0.5rem)_center]"
                   >
                     <option value="building">Building</option>
                     <option value="bridge">Bridge</option>
@@ -372,13 +390,13 @@ function ProjectCreatePage() {
                     value={formData.budget}
                     onChange={handleInputChange}
                     min="0"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-900"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:bg-white transition-all text-slate-900"
                     placeholder="e.g. 50000000"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Start Date *</label>
                   <input
@@ -386,7 +404,7 @@ function ProjectCreatePage() {
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-900"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:bg-white transition-all text-slate-900"
                   />
                 </div>
 
@@ -397,7 +415,7 @@ function ProjectCreatePage() {
                     name="endDate"
                     value={formData.endDate}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-900"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:bg-white transition-all text-slate-900"
                   />
                 </div>
               </div>
@@ -406,14 +424,16 @@ function ProjectCreatePage() {
         </div>
 
         {/* Right Column: Location / Map */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col h-[500px]">
-            <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-              <MapIcon className="w-5 h-5 text-indigo-500" />
-              <h3 className="font-bold text-slate-800">Pin Location</h3>
+        <div className="order-1 space-y-4 lg:sticky lg:top-24 lg:order-1">
+          <div className="flex h-[560px] flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 shadow-md backdrop-blur">
+            <div className="p-5 border-b border-slate-200/60 flex items-center gap-3 bg-gradient-to-r from-slate-50 to-white">
+              <div className="p-2 bg-slate-100/50 rounded-lg">
+                <MapIcon className="w-5 h-5 text-slate-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 heading-font text-lg tracking-tight">Pin Location</h3>
             </div>
 
-            <div className="p-4 border-b border-slate-100 bg-white space-y-2">
+            <div className="space-y-2 border-b border-slate-100 bg-white p-4">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Location Address
               </label>
@@ -423,23 +443,23 @@ function ProjectCreatePage() {
                   value={formData.location.address}
                   onChange={handleLocationAddressChange}
                   placeholder="Type an address or click on map"
-                  className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
                 />
                 <button
                   type="button"
                   onClick={geocodeAddressFromInput}
                   disabled={isGeocodingAddress || !String(formData.location.address || '').trim()}
-                  className="px-3 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                  className="px-3 py-2 text-sm font-medium text-white bg-slate-600 rounded-lg hover:bg-slate-700 disabled:bg-slate-300 disabled:cursor-not-allowed"
                 >
                   {isGeocodingAddress ? 'Locating...' : 'Locate'}
                 </button>
               </div>
             </div>
             
-            <div className="flex-1 relative bg-slate-100">
+            <div className="relative flex-1 bg-slate-100">
               {isMapKeyLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                  <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
                 </div>
               )}
               {!isMapKeyLoading && !mapsApiKey && (
@@ -468,7 +488,7 @@ function ProjectCreatePage() {
               )}
             </div>
 
-            <div className="p-4 bg-white border-t border-slate-100 space-y-3">
+            <div className="space-y-3 border-t border-slate-100 bg-white p-4">
               <div className="flex gap-3 items-start">
                 <MapPin className="w-5 h-5 text-red-500 mt-1 shrink-0" />
                 <div className="flex-1">
@@ -487,18 +507,25 @@ function ProjectCreatePage() {
               )}
             </div>
           </div>
+
+          <div className="rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Placement Guidance</p>
+            <p className="mt-2 text-sm text-slate-600">
+              Use a precise address or pin directly on the map for stronger geospatial risk analysis accuracy.
+            </p>
+          </div>
           
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex items-center justify-center py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-sm hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300"
+            className="flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-6 py-4 font-bold tracking-wide text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-900/30 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
           >
             {isSubmitting ? (
-              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
+              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3"></span>
             ) : (
-              <Save className="w-5 h-5 mr-2" />
+              <Save className="w-5 h-5 mr-3" />
             )}
-            Save Project
+            Initialize Project
           </button>
         </div>
       </form>

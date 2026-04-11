@@ -11,14 +11,14 @@ function LatestRiskSnapshotCard({ snapshot }) {
 
   return (
     <div className="mb-8 space-y-4">
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="h-1 w-full bg-linear-to-r from-blue-500 via-indigo-500 to-cyan-500"></div>
+      <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel shadow-md overflow-hidden">
+        <div className="h-1 w-full dark-pro-gradient"></div>
 
-        <div className="bg-linear-to-br from-blue-50 to-indigo-50 p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 shadow-sm">
-              <MapPin className="h-5 w-5 text-indigo-600" />
+        <div className="p-6 md:p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 shadow-inner">
+              <MapPin className="h-6 w-6 text-slate-700" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900">Latest Snapshot</h2>
@@ -32,42 +32,42 @@ function LatestRiskSnapshotCard({ snapshot }) {
           </span>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex items-center gap-2 mb-2">
-              <Cloud className="h-4 w-4 text-blue-600" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Source</p>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mt-6">
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <Cloud className="h-4 w-4 text-slate-400" />
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Source Engine</p>
             </div>
-            <p className="text-sm font-semibold text-slate-900">{snapshot.source || 'N/A'}</p>
+            <p className="text-base font-extrabold text-slate-900">{snapshot.source || 'N/A'}</p>
           </div>
 
-          <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-4 w-4 text-blue-600" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Fetched At</p>
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="h-4 w-4 text-slate-400" />
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Timestamp</p>
             </div>
-            <p className="text-xs font-semibold text-slate-900">{formatDate(snapshot.fetchedAt)}</p>
+            <p className="text-sm font-bold text-slate-800">{formatDate(snapshot.fetchedAt)}</p>
           </div>
 
-          <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex items-center gap-2 mb-2">
-              <Cloud className="h-4 w-4 text-blue-600" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Weather Code</p>
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <Cloud className="h-4 w-4 text-slate-400" />
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Atmosphere ID</p>
             </div>
-            <p className="text-sm font-semibold text-slate-900">
+            <p className="text-base font-extrabold text-slate-900">
               {snapshot.weatherCode ?? 'N/A'}
             </p>
           </div>
 
-          <div className="rounded-xl border border-blue-200 bg-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="h-4 w-4 text-blue-600" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Max Magnitude
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="h-4 w-4 text-amber-500" />
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                Peak Seismic
               </p>
             </div>
-            <p className="text-sm font-semibold text-slate-900">
-              {snapshot.maxEarthquakeMagnitude ?? 'N/A'}
+            <p className="text-base font-extrabold text-slate-900">
+              {snapshot.maxEarthquakeMagnitude ?? 'N/A'} M
             </p>
           </div>
         </div>
