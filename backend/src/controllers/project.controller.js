@@ -3,6 +3,22 @@ const geocodeService = require("../services/geocode.service");
 
 const VALID_STATUSES = ["DRAFT", "ANALYZING", "APPROVED", "HIGH_RISK"];
 
+exports.getMapsApiKey = async (req, res) => {
+  try {
+    const apiKey = String(process.env.GOOGLE_MAPS_API_KEY || "")
+      .trim()
+      .replace(/^"|"$/g, "")
+      .replace(/^'|'$/g, "");
+    if (!apiKey) {
+      return res.status(500).json({ message: "Google Maps API key is not configured" });
+    }
+
+    return res.json({ apiKey });
+  } catch (err) {
+    return res.status(500).json({ message: "Failed to load Google Maps config" });
+  }
+};
+
 // ─── Create Project ───────────────────────────────────────────────────────────
 exports.createProject = async (req, res) => {
   try {

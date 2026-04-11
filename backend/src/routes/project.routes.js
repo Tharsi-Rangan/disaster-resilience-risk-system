@@ -10,9 +10,10 @@ router.use(authMiddleware);
 // CRUD
 router.post("/", projectController.createProject);
 router.get("/", projectController.getProjects);
+router.get("/maps-api-key", projectController.getMapsApiKey);
 router.get("/:id", projectController.getProjectById);
 router.put("/:id", projectController.updateProject);
 router.delete("/:id", projectController.deleteProject);
-router.patch(":id/status", roleMiddleware("admin"), projectController.updateProjectStatus);
+router.patch("/:id/status", roleMiddleware("ADMIN"), projectController.updateProjectStatus);
 
 module.exports = router;

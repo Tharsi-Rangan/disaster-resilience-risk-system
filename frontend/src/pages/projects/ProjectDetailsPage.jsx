@@ -13,23 +13,111 @@ const containerStyle = {
   height: '100%'
 };
 
+function GoogleEmbedMap({ lat, lng }) {
+  const embedUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+
+  return (
+    <iframe
+      title="Project location map"
+      src={embedUrl}
+      className="h-full w-full border-0"
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+    />
+  );
+}
+
+function ProjectDetailsMap({ mapsApiKey, project, onMapBlocked }) {
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: mapsApiKey,
+  });
+
+  useEffect(() => {
+    if (loadError) {
+      onMapBlocked?.();
+    }
+  }, [loadError, onMapBlocked]);
+
+  if (!isLoaded) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-slate-500">
+        <div className="space-y-2">
+          <MapPin className="w-8 h-8 mx-auto text-slate-300" />
+          <p>Loading map...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={{ lat: project.location.lat, lng: project.location.lng }}
+      zoom={14}
+      options={{
+        disableDefaultUI: true,
+        zoomControl: true,
+      }}
+    >
+      <Marker position={{ lat: project.location.lat, lng: project.location.lng }} />
+    </GoogleMap>
+  );
+}
+
 function ProjectDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mapsApiKey, setMapsApiKey] = useState('');
+  const [isMapKeyLoading, setIsMapKeyLoading] = useState(true);
+  const [isMapBlocked, setIsMapBlocked] = useState(false);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Google Maps Loader
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
-  });
+  useEffect(() => {
+    const onAuthFailure = () => {
+      setIsMapBlocked(true);
+    };
+
+    window.addEventListener('google-maps-auth-failure', onAuthFailure);
+    return () => window.removeEventListener('google-maps-auth-failure', onAuthFailure);
+  }, []);
 
   useEffect(() => {
     fetchProject();
   }, [id]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadMapsKey = async () => {
+      try {
+        if (!isCancelled) {
+          setIsMapKeyLoading(true);
+        }
+        const response = await projectService.getMapsApiKey();
+        const key = String(response?.apiKey || '').trim();
+
+        if (!isCancelled && key) {
+          setMapsApiKey((prev) => prev || key);
+        }
+      } catch (err) {
+        // Keep map optional if key fetch fails.
+      } finally {
+        if (!isCancelled) {
+          setIsMapKeyLoading(false);
+        }
+      }
+    };
+
+    loadMapsKey();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const fetchProject = async () => {
     try {
@@ -61,9 +149,9 @@ function ProjectDetailsPage() {
   const getStatusBadge = (status) => {
     const statusConfig = {
       'DRAFT': 'bg-slate-100 text-slate-700 border-slate-200',
-      'ACTIVE': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      'COMPLETED': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      'ON_HOLD': 'bg-amber-50 text-amber-700 border-amber-200'
+      'ANALYZING': 'bg-amber-50 text-amber-700 border-amber-200',
+      'APPROVED': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      'HIGH_RISK': 'bg-rose-50 text-rose-700 border-rose-200'
     };
     const config = statusConfig[status?.toUpperCase()] || statusConfig['DRAFT'];
     return (
@@ -210,23 +298,19 @@ function ProjectDetailsPage() {
             </div>
             
             <div className="flex-1 relative bg-slate-100">
-              {isLoaded && project.location?.lat && project.location?.lng ? (
-                <GoogleMap
-                  mapContainerStyle={containerStyle}
-                  center={{ lat: project.location.lat, lng: project.location.lng }}
-                  zoom={14}
-                  options={{
-                    disableDefaultUI: true,
-                    zoomControl: true,
-                  }}
-                >
-                  <Marker position={{ lat: project.location.lat, lng: project.location.lng }} />
-                </GoogleMap>
+              {!isMapKeyLoading && mapsApiKey && !isMapBlocked && project.location?.lat && project.location?.lng ? (
+                <ProjectDetailsMap
+                  mapsApiKey={mapsApiKey}
+                  project={project}
+                  onMapBlocked={() => setIsMapBlocked(true)}
+                />
+              ) : project.location?.lat && project.location?.lng ? (
+                <GoogleEmbedMap lat={project.location.lat} lng={project.location.lng} />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-slate-500">
                   <div className="space-y-2">
                     <MapPin className="w-8 h-8 mx-auto text-slate-300" />
-                    <p>Map data is unavailable or location was not pinned properly.</p>
+                    <p>Map view is unavailable. Address details are still available below.</p>
                   </div>
                 </div>
               )}

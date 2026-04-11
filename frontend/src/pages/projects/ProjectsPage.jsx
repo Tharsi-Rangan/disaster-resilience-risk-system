@@ -4,6 +4,13 @@ import { Search, Plus, MapPin, Calendar, DollarSign, Filter, Building, Activity,
 import PageHeader from '../../components/common/PageHeader';
 import { projectService } from '../../services/projectService';
 
+const normalizeProjects = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.projects)) return payload.projects;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
+
 function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,31 +24,30 @@ function ProjectsPage() {
   const fetchProjects = async () => {
     try {
       setIsLoading(true);
-      // Depending on the backend, it might wrap responses. Let's assume standard array or { projects: [] } 
       const response = await projectService.getProjects(1, 100);
-      setProjects(response.projects || response || []);
+      setProjects(normalizeProjects(response));
     } catch (error) {
       console.error('Failed to fetch projects:', error);
-      // If error, set empty to gracefully fail
       setProjects([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredProjects = projects.filter((project) => {
-    const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          project.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || project.projectType === filterType;
+  const filteredProjects = (Array.isArray(projects) ? projects : []).filter((project) => {
+    const title = String(project?.title || '').toLowerCase();
+    const description = String(project?.description || '').toLowerCase();
+    const matchesSearch = title.includes(searchTerm.toLowerCase()) || description.includes(searchTerm.toLowerCase());
+    const matchesType = filterType === 'all' || String(project?.projectType || '').toLowerCase() === filterType;
     return matchesSearch && matchesType;
   });
 
   const getStatusBadge = (status) => {
     const statusConfig = {
       'DRAFT': 'bg-slate-100 text-slate-700 border-slate-200',
-      'ACTIVE': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      'COMPLETED': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      'ON_HOLD': 'bg-amber-50 text-amber-700 border-amber-200'
+      'ANALYZING': 'bg-amber-50 text-amber-700 border-amber-200',
+      'APPROVED': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      'HIGH_RISK': 'bg-rose-50 text-rose-700 border-rose-200'
     };
     const config = statusConfig[status?.toUpperCase()] || statusConfig['DRAFT'];
     return (
@@ -149,7 +155,9 @@ function ProjectsPage() {
                   </div>
                   <div className="flex items-center text-sm text-slate-600">
                     <DollarSign className="w-4 h-4 mr-2.5 text-emerald-500" />
-                    <span>LKR {project.budget?.toLocaleString() || '0'}</span>
+                    <span>
+                      LKR {Number.isFinite(Number(project?.budget)) ? Number(project.budget).toLocaleString() : '0'}
+                    </span>
                   </div>
                   <div className="flex items-center text-sm text-slate-600">
                     <Calendar className="w-4 h-4 mr-2.5 text-indigo-400" />

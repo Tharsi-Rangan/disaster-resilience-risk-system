@@ -1,6 +1,15 @@
 import apiClient from './api'
 
 export const projectService = {
+  getMapsApiKey: async () => {
+    try {
+      const response = await apiClient.get('/projects/maps-api-key')
+      return response.data
+    } catch (error) {
+      throw error.response?.data || error.message
+    }
+  },
+
   // Get all projects with pagination and filters
   getProjects: async (page = 1, limit = 10, filters = {}) => {
     try {

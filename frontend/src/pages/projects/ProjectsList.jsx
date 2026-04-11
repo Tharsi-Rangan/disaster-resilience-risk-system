@@ -6,7 +6,7 @@ import ErrorAlert from '../../components/ErrorAlert'
 import SuccessAlert from '../../components/SuccessAlert'
 import { useProjectStore } from '../../store/projectStore'
 import { projectService } from '../../services/projectService'
-import './ProjectsList.css'
+
 
 const ProjectsList = () => {
   const { projects, setProjects, deleteProjectLocal, setLoading, loading, error, setError, clearError } = useProjectStore()

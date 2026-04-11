@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Save, ArrowLeft, MapPin, AlertCircle, Map as MapIcon } from 'lucide-react';
@@ -16,10 +16,76 @@ const defaultCenter = {
   lng: 79.8612
 };
 
+function GoogleEmbedMap({ lat, lng }) {
+  const embedUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+
+  return (
+    <iframe
+      title="Selected location map"
+      src={embedUrl}
+      className="h-full w-full border-0"
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+    />
+  );
+}
+
+function ProjectMap({ mapsApiKey, formData, onMapLoad, onMapUnmount, onMapClick, onMapBlocked }) {
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: mapsApiKey,
+  });
+
+  useEffect(() => {
+    if (loadError) {
+      onMapBlocked?.();
+    }
+  }, [loadError, onMapBlocked]);
+
+  if (loadError) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-slate-500">
+        Map cannot be loaded right now. Please verify the same key has Maps JavaScript API enabled and billing active.
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  return (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={formData.location.lat ? { lat: formData.location.lat, lng: formData.location.lng } : defaultCenter}
+      zoom={12}
+      onLoad={onMapLoad}
+      onUnmount={onMapUnmount}
+      onClick={onMapClick}
+      options={{
+        disableDefaultUI: true,
+        zoomControl: true,
+      }}
+    >
+      {formData.location.lat && formData.location.lng && (
+        <Marker position={{ lat: formData.location.lat, lng: formData.location.lng }} />
+      )}
+    </GoogleMap>
+  );
+}
+
 function ProjectCreatePage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
   const [error, setError] = useState('');
+  const [mapsApiKey, setMapsApiKey] = useState('');
+  const [isMapKeyLoading, setIsMapKeyLoading] = useState(true);
+  const [isMapBlocked, setIsMapBlocked] = useState(false);
   
   // Initialize form state matching backend structure
   const [formData, setFormData] = useState({
@@ -36,12 +102,52 @@ function ProjectCreatePage() {
     }
   });
 
-  // Google Maps Loader
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    // Fallback to empty string but normally this comes from env vars
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
-  });
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadMapsKey = async () => {
+      try {
+        if (!isCancelled) {
+          setIsMapKeyLoading(true);
+        }
+
+        const response = await projectService.getMapsApiKey();
+        const key = String(response?.apiKey || '').trim();
+
+        if (!isCancelled && key) {
+          setMapsApiKey((prev) => prev || key);
+        }
+
+        if (!isCancelled && !key) {
+          setError('Google Maps key is missing in backend configuration.');
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          setError('Unable to load Google Maps configuration.');
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsMapKeyLoading(false);
+        }
+      }
+    };
+
+    loadMapsKey();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onAuthFailure = () => {
+      setIsMapBlocked(true);
+      setError('Google Maps is blocked for this API key. Continue by entering address manually.');
+    };
+
+    window.addEventListener('google-maps-auth-failure', onAuthFailure);
+    return () => window.removeEventListener('google-maps-auth-failure', onAuthFailure);
+  }, []);
 
   const mapRef = useRef(null);
   
@@ -59,6 +165,59 @@ function ProjectCreatePage() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleLocationAddressChange = (e) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      location: {
+        ...prev.location,
+        address: value,
+      },
+    }));
+  };
+
+  const geocodeAddressFromInput = async () => {
+    const address = String(formData.location.address || '').trim();
+
+    if (!address) {
+      setError('Please enter an address first.');
+      return;
+    }
+
+    if (!window.google?.maps?.Geocoder) {
+      setError('Map is still loading. You can still submit with the typed address.');
+      return;
+    }
+
+    try {
+      setIsGeocodingAddress(true);
+      setError('');
+
+      const geocoder = new window.google.maps.Geocoder();
+      const response = await geocoder.geocode({ address });
+
+      if (response.results?.[0]) {
+        const { lat, lng } = response.results[0].geometry.location;
+        setFormData((prev) => ({
+          ...prev,
+          location: {
+            ...prev.location,
+            address: response.results[0].formatted_address,
+            lat: lat(),
+            lng: lng(),
+          },
+        }));
+        return;
+      }
+
+      setError('Address not found. Please refine the text or pin on map.');
+    } catch (err) {
+      setError('Unable to resolve this address now. You can still submit with the typed address.');
+    } finally {
+      setIsGeocodingAddress(false);
+    }
   };
 
   const getAddressFromLatLng = async (lat, lng) => {
@@ -107,8 +266,8 @@ function ProjectCreatePage() {
       return;
     }
 
-    if (!formData.location.lat || !formData.location.address) {
-      setError('Please select a valid location on the map.');
+    if (!String(formData.location.address || '').trim()) {
+      setError('Please enter a location address or pin a point on the map.');
       return;
     }
 
@@ -118,6 +277,10 @@ function ProjectCreatePage() {
       const payload = {
         ...formData,
         budget: Number(formData.budget),
+        location: {
+          ...formData.location,
+          address: String(formData.location.address || '').trim(),
+        },
         status: 'DRAFT'
       };
 
@@ -249,35 +412,59 @@ function ProjectCreatePage() {
               <MapIcon className="w-5 h-5 text-indigo-500" />
               <h3 className="font-bold text-slate-800">Pin Location</h3>
             </div>
+
+            <div className="p-4 border-b border-slate-100 bg-white space-y-2">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Location Address
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={formData.location.address}
+                  onChange={handleLocationAddressChange}
+                  placeholder="Type an address or click on map"
+                  className="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="button"
+                  onClick={geocodeAddressFromInput}
+                  disabled={isGeocodingAddress || !String(formData.location.address || '').trim()}
+                  className="px-3 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                >
+                  {isGeocodingAddress ? 'Locating...' : 'Locate'}
+                </button>
+              </div>
+            </div>
             
             <div className="flex-1 relative bg-slate-100">
-              {loadError && (
-                <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-slate-500">
-                  Map cannot be loaded right now. Please check your API key or connection.
-                </div>
-              )}
-              {!isLoaded && !loadError && (
+              {isMapKeyLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
                 </div>
               )}
-              {isLoaded && !loadError && (
-                <GoogleMap
-                  mapContainerStyle={containerStyle}
-                  center={formData.location.lat ? { lat: formData.location.lat, lng: formData.location.lng } : defaultCenter}
-                  zoom={12}
-                  onLoad={onMapLoad}
-                  onUnmount={onMapUnmount}
-                  onClick={onMapClick}
-                  options={{
-                    disableDefaultUI: true,
-                    zoomControl: true,
-                  }}
-                >
-                  {formData.location.lat && formData.location.lng && (
-                    <Marker position={{ lat: formData.location.lat, lng: formData.location.lng }} />
-                  )}
-                </GoogleMap>
+              {!isMapKeyLoading && !mapsApiKey && (
+                <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-slate-500">
+                  Google Maps key is not available from backend configuration.
+                </div>
+              )}
+              {!isMapKeyLoading && !!mapsApiKey && !isMapBlocked && (
+                <ProjectMap
+                  mapsApiKey={mapsApiKey}
+                  formData={formData}
+                  onMapLoad={onMapLoad}
+                  onMapUnmount={onMapUnmount}
+                  onMapClick={onMapClick}
+                  onMapBlocked={() => setIsMapBlocked(true)}
+                />
+              )}
+              {!isMapKeyLoading && (!!mapsApiKey && isMapBlocked) && (
+                formData.location?.lat && formData.location?.lng ? (
+                  <GoogleEmbedMap lat={formData.location.lat} lng={formData.location.lng} />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-slate-500">
+                    Google Maps is blocked for this key. Use the address input above to continue.
+                  </div>
+                )
               )}
             </div>
 

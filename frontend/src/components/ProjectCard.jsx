@@ -4,7 +4,8 @@ import './ProjectCard.css'
 
 const ProjectCard = ({ project, onDelete }) => {
   const getStatusBadgeClass = (status) => {
-    return `status-badge status-${status.toLowerCase()}`
+    const normalizedStatus = String(status || 'DRAFT').toLowerCase()
+    return `status-badge status-${normalizedStatus}`
   }
 
   const getProjectTypeIcon = (type) => {
@@ -46,12 +47,12 @@ const ProjectCard = ({ project, onDelete }) => {
       <div className="card-details">
         <div className="detail-item">
           <span className="detail-label">📍 Location:</span>
-          <span className="detail-value">{project.location.address}</span>
+          <span className="detail-value">{project.location?.address || 'Location not set'}</span>
         </div>
         {project.budget && (
           <div className="detail-item">
             <span className="detail-label">💰 Budget:</span>
-            <span className="detail-value">${project.budget.toLocaleString()}</span>
+            <span className="detail-value">LKR {project.budget.toLocaleString()}</span>
           </div>
         )}
         {project.startDate && (
