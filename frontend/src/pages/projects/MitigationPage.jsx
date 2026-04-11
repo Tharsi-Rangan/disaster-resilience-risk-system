@@ -24,6 +24,7 @@ function MitigationPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
 
   useEffect(() => {
     if (!isValidProjectId(projectId)) {
@@ -74,9 +75,12 @@ function MitigationPage() {
     try {
       setGenerating(true)
       setError(null)
+      setSuccess(null)
       const data = await generateMitigationPlan(projectId)
       setPlan(data.mitigationPlan)
       setActiveTab('LATEST')
+      setSuccess("AI Mitigation Plan generated successfully!")
+      setTimeout(() => setSuccess(null), 4000)
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to generate mitigation plan')
     } finally {
@@ -86,36 +90,45 @@ function MitigationPage() {
 
   const handleUpdateRec = async (recId, newStatus, newActionNote) => {
     if (!plan) return
+    setError(null)
     try {
       const data = await updateRecommendation(plan._id, recId, {
         status: newStatus,
         actionNote: newActionNote
       })
       setPlan(data.mitigationPlan)
+      setSuccess("Task updated successfully.")
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      window.alert(err.response?.data?.message || 'Failed to update recommendation')
+      setError(err.response?.data?.message || 'Failed to update recommendation')
     }
   }
 
   const handleDeleteRec = async (recId) => {
     if (!plan) return
     if (!window.confirm("Delete this specific recommendation permanently?")) return
+    setError(null)
     try {
       const data = await deleteRecommendation(plan._id, recId)
       setPlan(data.mitigationPlan)
+      setSuccess("Task deleted permanently.")
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      window.alert(err.response?.data?.message || 'Failed to delete recommendation')
+      setError(err.response?.data?.message || 'Failed to delete recommendation')
     }
   }
 
   const handleDeletePlan = async () => {
     if (!plan) return
     if (!window.confirm("Are you sure you want to completely delete this AI plan and ALL its progress?")) return
+    setError(null)
     try {
       await deleteMitigationPlan(plan._id)
       setPlan(null)
+      setSuccess("Mitigation plan deleted successfully.")
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      window.alert(err.response?.data?.message || 'Failed to delete plan')
+      setError(err.response?.data?.message || 'Failed to delete plan')
     }
   }
 
@@ -176,7 +189,18 @@ function MitigationPage() {
         </nav>
       </div>
 
-      {error && <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100">{error}</div>}
+      {error && (
+        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center justify-between mb-2">
+          <span className="font-medium">{error}</span>
+          <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 px-2 font-bold text-lg">&times;</button>
+        </div>
+      )}
+      {success && (
+        <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center justify-between mb-2">
+          <span className="font-medium">{success}</span>
+          <button onClick={() => setSuccess(null)} className="text-green-500 hover:text-green-700 px-2 font-bold text-lg">&times;</button>
+        </div>
+      )}
 
       {/* HISTORY TAB */}
       {activeTab === 'HISTORY' && (
