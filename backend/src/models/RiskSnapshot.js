@@ -18,6 +18,9 @@ const RiskSnapshotSchema = new mongoose.Schema(
 
     // Earthquake
     earthquakeCount: { type: Number, default: 0 },
+    earthquakeWindowDays: { type: Number, default: 30 }, // Days to lookback for earthquakes
+    earthquakeRadiusKm: { type: Number, default: 200 }, // Search radius in kilometers
+    minEarthquakeMagnitude: { type: Number, default: 3 }, // Minimum magnitude threshold
 
     // Simple index (NOT assessment score)
     floodRiskIndex: { type: Number, default: 0 }, // 0 - 100
