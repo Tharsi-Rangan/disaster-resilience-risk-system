@@ -1,8 +1,55 @@
 import { Download, Share2, MessageCircle } from 'lucide-react'
 
-function ShareFeatures({ snapshot, history, projectName, onFeedback }) {
+function ShareFeatures({ snapshot, history, projectName, projectOverview, onFeedback }) {
+  const getProjectOverview = () => {
+    const location = projectOverview?.location || projectOverview?.coordinates || {}
+    const latitude =
+      location?.latitude ??
+      location?.lat ??
+      projectOverview?.latitude ??
+      projectOverview?.lat ??
+      (Array.isArray(location?.coordinates) ? location.coordinates[1] : undefined)
+
+    const longitude =
+      location?.longitude ??
+      location?.lng ??
+      location?.lon ??
+      projectOverview?.longitude ??
+      projectOverview?.lng ??
+      projectOverview?.lon ??
+      (Array.isArray(location?.coordinates) ? location.coordinates[0] : undefined)
+
+    const hasCoordinates = Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude))
+
+    const locationText =
+      projectOverview?.address ||
+      projectOverview?.locationName ||
+      projectOverview?.location_name ||
+      (hasCoordinates ? `${Number(latitude).toFixed(4)}, ${Number(longitude).toFixed(4)}` : 'N/A')
+
+    const createdDate = projectOverview?.createdAt || projectOverview?.created_at
+
+    return {
+      name: projectOverview?.title || projectOverview?.name || projectName || 'Project',
+      type: projectOverview?.projectType || projectOverview?.type || 'N/A',
+      status: projectOverview?.status || 'N/A',
+      location: locationText,
+      created: createdDate ? new Date(createdDate).toLocaleString() : 'N/A',
+    }
+  }
+
+  const formatCell = (cell) => {
+    const str = String(cell)
+    return str.includes(',') || str.includes('"') || str.includes('\n')
+      ? `"${str.replace(/"/g, '""')}"`
+      : str
+  }
+
   const handleExportCSV = () => {
     try {
+      const exportedAt = new Date().toLocaleString()
+      const overview = getProjectOverview()
+
       const headers = [
         'Fetched At',
         'Source',
@@ -18,6 +65,19 @@ function ShareFeatures({ snapshot, history, projectName, onFeedback }) {
         'Max Earthquake Magnitude',
         'Nearest Earthquake Distance (km)',
         'Flood Risk Index'
+      ]
+
+      const latestHazardRows = [
+        ['Latest Snapshot Fetched At', snapshot?.fetchedAt ? new Date(snapshot.fetchedAt).toLocaleString() : 'N/A'],
+        ['Latest Snapshot Source', snapshot?.source || 'N/A'],
+        ['Flood Risk Index', snapshot?.floodRiskIndex ?? 'N/A'],
+        ['Earthquake Count', snapshot?.earthquakeCount ?? 'N/A'],
+        ['Max Earthquake Magnitude', snapshot?.maxEarthquakeMagnitude ?? 'N/A'],
+        ['Nearest Earthquake Distance (km)', snapshot?.nearestEarthquakeDistanceKm ?? 'N/A'],
+        ['Temperature (°C)', snapshot?.temperature ?? 'N/A'],
+        ['Humidity (%)', snapshot?.humidity ?? 'N/A'],
+        ['Wind Speed (m/s)', snapshot?.windSpeed ?? 'N/A'],
+        ['Rainfall (mm)', snapshot?.rainfall ?? 'N/A'],
       ]
 
       const rows = (history || []).map((item) => [
@@ -37,18 +97,26 @@ function ShareFeatures({ snapshot, history, projectName, onFeedback }) {
         item.floodRiskIndex ?? 'N/A'
       ])
 
+      const csvRows = [
+        ['Section', 'Value'],
+        ['Report Type', 'Disaster Risk Data Export'],
+        ['Exported At', exportedAt],
+        ['Project Name', overview.name],
+        ['Project Type', overview.type],
+        ['Project Status', overview.status],
+        ['Project Location', overview.location],
+        ['Project Created', overview.created],
+        [],
+        ['Latest Hazard Snapshot', ''],
+        ...latestHazardRows,
+        [],
+        ['Snapshot History', ''],
+        headers,
+        ...rows,
+      ]
+
       const csvContent = [
-        headers.join(','),
-        ...rows.map((row) =>
-          row
-            .map((cell) => {
-              const str = String(cell)
-              return str.includes(',') || str.includes('"') || str.includes('\n')
-                ? `"${str.replace(/"/g, '""')}"`
-                : str
-            })
-            .join(',')
-        )
+        ...csvRows.map((row) => (Array.isArray(row) ? row.map(formatCell).join(',') : ''))
       ].join('\n')
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -64,7 +132,7 @@ function ShareFeatures({ snapshot, history, projectName, onFeedback }) {
       onFeedback?.({
         type: 'success',
         title: 'Export complete',
-        message: 'Risk history was exported to CSV successfully.',
+        message: 'Project overview, export date, and hazard data were exported successfully.',
       })
     } catch (error) {
       onFeedback?.({
@@ -115,16 +183,29 @@ function ShareFeatures({ snapshot, history, projectName, onFeedback }) {
   const generateSummaryText = () => {
     if (!snapshot) return 'Risk data not available'
 
+    const overview = getProjectOverview()
+    const exportedAt = new Date().toLocaleString()
+
     return (
-      `📊 Disaster Risk Summary - ${projectName || 'Project'}\n\n` +
-      `🚨 Flood Risk Index: ${snapshot.floodRiskIndex?.toFixed(0) || 'N/A'}\n` +
-      `🌡️ Temperature: ${snapshot.temperature?.toFixed(1) || 'N/A'}°C\n` +
-      `💧 Humidity: ${snapshot.humidity?.toFixed(0) || 'N/A'}%\n` +
-      `💨 Wind Speed: ${snapshot.windSpeed?.toFixed(1) || 'N/A'} m/s\n` +
-      `🌧️ Rainfall: ${snapshot.rainfall?.toFixed(1) || 'N/A'} mm\n` +
-      `📡 Earthquakes: ${snapshot.earthquakeCount || 0} event(s)\n` +
-      `\nℹ️ Source: ${snapshot.source || 'Unknown'}\n` +
-      `⏰ Fetched: ${new Date(snapshot.fetchedAt).toLocaleString()}\n\n` +
+      `📊 Disaster Risk Summary\n\n` +
+      `Project Overview\n` +
+      `• Name: ${overview.name}\n` +
+      `• Type: ${overview.type}\n` +
+      `• Status: ${overview.status}\n` +
+      `• Location: ${overview.location}\n` +
+      `• Created: ${overview.created}\n\n` +
+      `Exported Date: ${exportedAt}\n\n` +
+      `Hazard Data\n` +
+      `• Flood Risk Index: ${snapshot.floodRiskIndex?.toFixed(0) || 'N/A'}\n` +
+      `• Temperature: ${snapshot.temperature?.toFixed(1) || 'N/A'}°C\n` +
+      `• Humidity: ${snapshot.humidity?.toFixed(0) || 'N/A'}%\n` +
+      `• Wind Speed: ${snapshot.windSpeed?.toFixed(1) || 'N/A'} m/s\n` +
+      `• Rainfall: ${snapshot.rainfall?.toFixed(1) || 'N/A'} mm\n` +
+      `• Earthquakes: ${snapshot.earthquakeCount || 0} event(s)\n` +
+      `• Max Earthquake Magnitude: ${snapshot.maxEarthquakeMagnitude ?? 'N/A'}\n` +
+      `• Nearest Earthquake Distance: ${snapshot.nearestEarthquakeDistanceKm ?? 'N/A'} km\n` +
+      `\nSource: ${snapshot.source || 'Unknown'}\n` +
+      `Snapshot Fetched: ${new Date(snapshot.fetchedAt).toLocaleString()}\n\n` +
       `Generated from ResiluGuard - Disaster Resilience Risk System`
     )
   }

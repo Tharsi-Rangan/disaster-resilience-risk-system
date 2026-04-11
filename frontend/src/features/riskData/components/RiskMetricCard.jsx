@@ -2,6 +2,9 @@ import { AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react'
 
 function formatValue(value, unit = '') {
   if (value === null || value === undefined || value === '') return 'N/A'
+  if (typeof value === 'number') {
+    return `${Number(value.toFixed(2)).toLocaleString()}${unit}`
+  }
   return `${value}${unit}`
 }
 
@@ -30,13 +33,13 @@ function getRiskLevel(label, value) {
 function getColorClass(riskLevel) {
   switch (riskLevel) {
     case 'danger':
-      return 'border-red-200 bg-red-50'
+      return 'border-red-200 bg-linear-to-br from-red-50 to-rose-50'
     case 'warning':
-      return 'border-amber-200 bg-amber-50'
+      return 'border-amber-200 bg-linear-to-br from-amber-50 to-yellow-50'
     case 'safe':
-      return 'border-emerald-200 bg-emerald-50'
+      return 'border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50'
     default:
-      return 'border-slate-200 bg-white'
+      return 'border-slate-200 bg-linear-to-br from-white to-slate-50'
   }
 }
 
@@ -71,28 +74,43 @@ function RiskMetricCard({ label, value, unit = '', helperText = '' }) {
   const colorClass = getColorClass(riskLevel)
   const textColorClass = getTextColorClass(riskLevel)
 
+  const riskBadgeClass = {
+    danger: 'bg-red-100 text-red-700 border border-red-200',
+    warning: 'bg-amber-100 text-amber-700 border border-amber-200',
+    safe: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+    neutral: 'bg-slate-100 text-slate-600 border border-slate-200',
+  }[riskLevel]
+
+  const riskLabel = {
+    danger: 'High Risk',
+    warning: 'Caution',
+    safe: 'Safe',
+    neutral: 'No Risk Rule',
+  }[riskLevel]
+
   return (
     <div
-      className={`rounded-2xl border ${colorClass} p-5 shadow-sm transition-all hover:shadow-md`}
+      className={`group rounded-2xl border ${colorClass} p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md`}
       title={helperText || label}
     >
-      <div className="flex items-start justify-between mb-2">
-        <p className="text-sm font-medium text-slate-600">{label}</p>
-        {riskLevel !== 'neutral' && getRiskIcon(riskLevel)}
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <p className="text-sm font-semibold tracking-wide text-slate-600">{label}</p>
+        <div className="mt-0.5">{riskLevel !== 'neutral' ? getRiskIcon(riskLevel) : null}</div>
       </div>
-      <h3 className={`text-2xl font-bold ${textColorClass}`}>
+
+      <h3 className={`text-4xl font-black leading-none ${textColorClass}`}>
         {formatValue(value, unit)}
       </h3>
+
       {helperText ? (
-        <p className="mt-2 text-xs text-slate-500 leading-relaxed">{helperText}</p>
+        <p className="mt-2 text-xs leading-relaxed text-slate-500">{helperText}</p>
       ) : null}
-      {riskLevel !== 'neutral' && (
-        <p className="mt-2 text-xs font-medium">
-          {riskLevel === 'danger' && <span className="text-red-600">⚠️ High Risk</span>}
-          {riskLevel === 'warning' && <span className="text-amber-600">⚠️ Caution</span>}
-          {riskLevel === 'safe' && <span className="text-emerald-600">✓ Safe</span>}
-        </p>
-      )}
+
+      <div className="mt-3">
+        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${riskBadgeClass}`}>
+          {riskLabel}
+        </span>
+      </div>
     </div>
   )
 }
