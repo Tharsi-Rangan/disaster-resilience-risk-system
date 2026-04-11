@@ -11,14 +11,14 @@ const normalizeRecommendations = (recs = []) => {
 };
 
 const buildMitigationPlan = async (assessmentData) => {
-  const { riskLevel, riskScore, floodScore, earthquakeScore, weatherScore } = assessmentData;
+  const { riskLevel, riskScore, floodScore, earthquakeScore, weatherScore, locationContext, weatherContext } = assessmentData;
 
   const provider = (process.env.AI_PROVIDER || "NONE").toUpperCase();
 
   // 1) Try AI first (if enabled)
   if (provider === "GEMINI") {
     try {
-      const ai = await geminiGenerateMitigation({ riskLevel, riskScore, floodScore, earthquakeScore, weatherScore });
+      const ai = await geminiGenerateMitigation({ riskLevel, riskScore, floodScore, earthquakeScore, weatherScore, locationContext, weatherContext });
 
       return {
         priorityLevel: ai.priorityLevel || riskLevel,
@@ -61,13 +61,18 @@ const buildMitigationPlan = async (assessmentData) => {
     });
   }
 
-  if (recommendations.length === 0) {
-    recommendations.push({
-      title: "General Risk Monitoring",
-      details: "Continue periodic monitoring and preventive maintenance.",
-      category: "GENERAL",
-      status: "PENDING",
-    });
+  const fallbacks = [
+    { title: "General Risk Monitoring", details: "Continue periodic monitoring and preventive maintenance.", category: "GENERAL", status: "PENDING" },
+    { title: "Emergency Response Plan", details: "Establish clear evacuation routes and emergency contacts.", category: "GENERAL", status: "PENDING" },
+    { title: "Staff Safety Training", details: "Conduct regular safety drills for all on-site personnel.", category: "GENERAL", status: "PENDING" },
+    { title: "Equipment Inspection", details: "Check and maintain all protective gear and machinery.", category: "GENERAL", status: "PENDING" },
+    { title: "Material Securing", details: "Ensure loose materials are tied down to prevent damage.", category: "GENERAL", status: "PENDING" }
+  ];
+
+  for (let item of fallbacks) {
+    if (recommendations.length < 5) {
+      recommendations.push(item);
+    }
   }
 
   return {
