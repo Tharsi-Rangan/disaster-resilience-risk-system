@@ -136,6 +136,9 @@ function MitigationPage() {
       await deleteMitigationPlan(plan._id)
       setPlan(null)
       setSuccess("Mitigation plan deleted successfully.")
+      if (activeTab === 'VIEW_HISTORICAL_PLAN') {
+        setActiveTab('HISTORY')
+      }
       setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete plan')
@@ -166,12 +169,12 @@ function MitigationPage() {
                {generating ? 'Generating AI Plan...' : 'Generate New Plan'}
              </button>
           )}
-          {plan && activeTab === 'LATEST' && (
+          {plan && (activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && (
              <button onClick={() => handleGenerate(true)} disabled={generating} className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
                {generating ? 'Processing...' : 'Re-Generate Plan'}
              </button>
           )}
-          {plan && activeTab === 'LATEST' && isAdmin && (
+          {plan && (activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && isAdmin && (
             <button onClick={handleDeletePlan} className="px-4 py-2.5 bg-red-50 text-red-600 text-sm font-bold rounded-xl hover:bg-red-100 border border-red-200 transition-colors">
               Delete Plan
             </button>
@@ -194,7 +197,7 @@ function MitigationPage() {
           <button
             onClick={() => setActiveTab('HISTORY')}
             className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'HISTORY'
+              activeTab === 'HISTORY' || activeTab === 'VIEW_HISTORICAL_PLAN'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             }`}
@@ -228,10 +231,18 @@ function MitigationPage() {
             historyPlans.map((histPlan) => (
               <div key={histPlan._id} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <div>
-                   <p className="font-bold text-slate-900 text-lg">Plan Generated: {new Date(histPlan.createdAt).toLocaleDateString()}</p>
-                   <p className="text-sm text-slate-500 mt-1 font-medium">Engine: <span className="text-slate-800">{histPlan.aiProvider}</span> | Priority: <span className="text-slate-800">{histPlan.priorityLevel}</span> | Tasks: <span className="text-slate-800">{histPlan.totalRecommendations}</span></p>
+                  <p className="font-bold text-slate-900 text-lg">Plan Generated: {new Date(histPlan.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm text-slate-500 mt-1 font-medium">Engine: <span className="text-slate-800">{histPlan.aiProvider}</span> | Priority: <span className="text-slate-800">{histPlan.priorityLevel}</span> | Tasks: <span className="text-slate-800">{histPlan.totalRecommendations}</span></p>
                 </div>
-                <div><StatusBadge label={histPlan.planStatus} variant={histPlan.planStatus === 'COMPLETED' ? 'success' : 'default'} /></div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <StatusBadge label={histPlan.planStatus} variant={histPlan.planStatus === 'COMPLETED' ? 'success' : 'default'} />
+                  <button 
+                    onClick={() => { setPlan(histPlan); setActiveTab('VIEW_HISTORICAL_PLAN'); }}
+                    className="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-sm shadow-sm transition-colors w-full sm:w-auto text-center"
+                  >
+                    View & Update
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -260,8 +271,19 @@ function MitigationPage() {
         </div>
       )}
 
-      {activeTab === 'LATEST' && plan && (
+      {/* LATEST OR HISTORICAL PLAN VIEW */}
+      {(activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && plan && (
         <div className="space-y-6">
+           {activeTab === 'VIEW_HISTORICAL_PLAN' && (
+             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+               <div className="flex items-center gap-3">
+                 <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                 <span className="font-medium">You are viewing an older plan from the Historical Archives. Updates here will modify this specific historical record.</span>
+               </div>
+               <button onClick={() => setActiveTab('HISTORY')} className="shrink-0 text-sm font-bold text-amber-700 hover:text-amber-900 underline">Back to Archives</button>
+             </div>
+           )}
+
            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
              <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">Status</p><StatusBadge label={plan.planStatus} variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} /></div>
              <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total Tasks</p><p className="text-3xl font-black text-slate-900">{plan.totalRecommendations}</p></div>
