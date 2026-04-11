@@ -15,7 +15,11 @@ const RiskAssessmentSchema = new mongoose.Schema(
     },
 
     riskScore: { type: Number, required: true, min: 0, max: 100 },
-    riskLevel: { type: String, required: true, enum: ["LOW", "MEDIUM", "HIGH"] },
+    riskLevel: {
+      type: String,
+      required: true,
+      enum: ["LOW", "MEDIUM", "HIGH"],
+    },
 
     weatherScore: { type: Number, default: 0, min: 0, max: 100 },
     earthquakeScore: { type: Number, default: 0, min: 0, max: 100 },

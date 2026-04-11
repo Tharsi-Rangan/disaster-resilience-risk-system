@@ -13,7 +13,10 @@ exports.runAssessment = async (req, res) => {
 
     return res.status(201).json({
       assessment: result.created,
-      meta: { snapshotId: result.usedSnapshot, elevation: result.elevation },
+      meta: {
+        snapshotId: result.usedSnapshot,
+        elevation: result.elevation,
+      },
     });
   } catch (err) {
     return res

@@ -111,74 +111,47 @@ Roles:
 
 ## 🔄 REST API Design
 
-### Auth Routes
+🔐 Auth Routes
 
- feature/assessments
 * POST /api/auth/register
 * POST /api/auth/verify-email
 * POST /api/auth/login
 * POST /api/auth/forgot-password
 * POST /api/auth/reset-password
 
-### Project Routes
+📁 Project Routes
 
-* POST /api/projects
-* GET /api/projects
-* GET /api/projects/:id
-* PUT /api/projects/:id
-* DELETE /api/projects/:id
+POST /api/projects
 
-### Risk Data Routes
+GET /api/projects
 
-* POST /api/risk-data/fetch/:projectId
-* GET /api/risk-data/:projectId/latest
-* GET /api/risk-data/:projectId/history
+GET /api/projects/:id
 
-### Assessment Routes
+PUT /api/projects/:id
 
-* POST /api/assessments/run/:projectId
-* GET /api/assessments/:projectId/latest
-* GET /api/assessments/:projectId/history
+DELETE /api/projects/:id
 
-### Mitigation Routes
+🌍 Risk Data Routes
+
+POST /api/risk-data/fetch/:projectId
+
+GET /api/risk-data/:projectId/latest
+
+GET /api/risk-data/:projectId/history
+
+📊 Assessment Routes
+
+POST /api/assessments/run/:projectId
+
+GET /api/assessments/:projectId/latest
+
+GET /api/assessments/:projectId/history
+
+🛡 Mitigation Routes
 
 * POST /api/mitigation/generate/:projectId
 * GET /api/mitigation/:projectId/latest
 * GET /api/mitigation/:projectId/history
-
-POST /api/auth/register
-POST /api/auth/verify-email
-POST /api/auth/login
-POST /api/auth/forgot-password
-POST /api/auth/reset-password
-
-### Project Routes
-
-POST /api/projects
-GET /api/projects
-GET /api/projects/:id
-PUT /api/projects/:id
-DELETE /api/projects/:id
-
-### Risk Data Routes
-
-POST /api/risk-data/fetch/:projectId
-GET /api/risk-data/:projectId/latest
-GET /api/risk-data/:projectId/history
-
-### Assessment Routes
-
-POST /api/assessments/run/:projectId
-GET /api/assessments/:projectId/latest
-GET /api/assessments/:projectId/history
-
-### Mitigation Routes
-
-POST   /api/mitigation/generate/:projectId
-GET    /api/mitigation/:projectId/latest
-GET    /api/mitigation/:projectId/history
-DELETE /api/mitigation/:id
-main
 
 All routes follow standard HTTP status conventions:
 
