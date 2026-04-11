@@ -70,17 +70,23 @@ function MitigationPage() {
     }
   }
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (isRegeneration = false) => {
     if (!isValidProjectId(projectId)) {
       navigate('/projects', { replace: true })
       return
+    }
+
+    let customFocus = null;
+    if (isRegeneration) {
+      customFocus = window.prompt("What specific area should the new AI plan focus on? (e.g. 'Focus on budget-friendly ideas' or 'Focus on immediate weather threats')");
+      if (customFocus === null) return; // User cancelled
     }
 
     try {
       setGenerating(true)
       setError(null)
       setSuccess(null)
-      const data = await generateMitigationPlan(projectId)
+      const data = await generateMitigationPlan(projectId, customFocus ? { customFocus } : {})
       setPlan(data.mitigationPlan)
       setActiveTab('LATEST')
       setSuccess("AI Mitigation Plan generated successfully!")
@@ -156,8 +162,13 @@ function MitigationPage() {
         />
         <div className="flex gap-2">
           {!plan && activeTab === 'LATEST' && (
-             <button onClick={handleGenerate} disabled={generating} className="px-5 py-2.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
+             <button onClick={() => handleGenerate(false)} disabled={generating} className="px-5 py-2.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
                {generating ? 'Generating AI Plan...' : 'Generate New Plan'}
+             </button>
+          )}
+          {plan && activeTab === 'LATEST' && (
+             <button onClick={() => handleGenerate(true)} disabled={generating} className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
+               {generating ? 'Processing...' : 'Re-Generate Plan'}
              </button>
           )}
           {plan && activeTab === 'LATEST' && isAdmin && (
@@ -237,7 +248,7 @@ function MitigationPage() {
            </div>
            <h3 className="text-xl font-bold text-slate-900 mb-2">No Active Mitigation Plan</h3>
            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Generate one to receive highly specific, action-oriented recommendations based on your unique risk profile.</p>
-           <button onClick={handleGenerate} disabled={generating} className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors mx-auto flex items-center justify-center gap-2">
+           <button onClick={() => handleGenerate(false)} disabled={generating} className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors mx-auto flex items-center justify-center gap-2">
              {generating && (
                <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

@@ -8,6 +8,7 @@ const RiskSnapshot = require("../models/RiskSnapshot");
 const generateMitigationPlan = async (req, res) => {
   try {
     const { projectId } = req.params;
+    const { customFocus } = req.body || {};
 
     if (!projectId) {
       return res.status(400).json({ message: "projectId is required" });
@@ -44,6 +45,7 @@ const generateMitigationPlan = async (req, res) => {
       weatherScore: assessment.weatherScore,
       locationContext,
       weatherContext,
+      customFocus,
     });
 
     const totalRecs = planData.recommendations.length;

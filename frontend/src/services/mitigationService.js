@@ -1,7 +1,7 @@
 import apiClient from './api'
 
-export const generateMitigationPlan = async (projectId) => {
-  const response = await apiClient.post(`/mitigation/generate/${projectId}`)
+export const generateMitigationPlan = async (projectId, data = {}) => {
+  const response = await apiClient.post(`/mitigation/generate/${projectId}`, data)
   return response.data
 }
 

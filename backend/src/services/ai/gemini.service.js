@@ -21,6 +21,7 @@ const geminiGenerateMitigation = async ({
   weatherScore,
   locationContext,
   weatherContext,
+  customFocus,
 }) => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY missing");
@@ -60,6 +61,7 @@ Risk Data:
 - weatherScore: ${weatherScore}
 ${locationContext ? `- Location Context: ${locationContext}` : ''}
 ${weatherContext ? `- Environmental Context: ${weatherContext}` : ''}
+${customFocus ? `\nCRITICAL USER REQUEST: The user specifically requested that you base the new plan around this focus area:\n"${customFocus}"\nPrioritize this focus while generating recommendations.` : ''}
 `;
 
   const result = await model.generateContent(prompt);
