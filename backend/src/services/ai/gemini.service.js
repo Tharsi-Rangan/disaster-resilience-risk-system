@@ -19,6 +19,8 @@ const geminiGenerateMitigation = async ({
   floodScore,
   earthquakeScore,
   weatherScore,
+  locationContext,
+  weatherContext,
 }) => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY missing");
@@ -28,9 +30,16 @@ const geminiGenerateMitigation = async ({
 
   const prompt = `
 You are an expert disaster mitigation engineer.
-Generate mitigation recommendations based on risk analysis.
+Generate exactly 5 practical, action-oriented mitigation recommendations based on the provided risk analysis.
 
-Return ONLY JSON in this exact format:
+Rules:
+1. Use simple English for general users.
+2. Avoid overly technical jargon.
+3. Keep details short and readable.
+4. If location or weather data is provided below, incorporate it subtly into your reasoning.
+5. The core driver of priority MUST be the riskScore and riskLevel.
+
+Return ONLY JSON in this exact format, with exactly 5 objects in the array:
 
 {
   "priorityLevel": "LOW|MEDIUM|HIGH",
@@ -49,6 +58,8 @@ Risk Data:
 - floodScore: ${floodScore}
 - earthquakeScore: ${earthquakeScore}
 - weatherScore: ${weatherScore}
+${locationContext ? `- Location Context: ${locationContext}` : ''}
+${weatherContext ? `- Environmental Context: ${weatherContext}` : ''}
 `;
 
   const result = await model.generateContent(prompt);
