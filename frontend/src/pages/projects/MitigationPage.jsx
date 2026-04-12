@@ -10,10 +10,14 @@ import {
   deleteMitigationPlan,
   getMitigationHistory
 } from '../../services/mitigationService'
+import useAuth from '../../hooks/useAuth'
 
 const isValidProjectId = (projectId) => /^[a-f\d]{24}$/i.test(String(projectId || ''))
 
 function MitigationPage() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
+
   const navigate = useNavigate()
   const { id: projectId } = useParams()
   const [activeTab, setActiveTab] = useState('LATEST') // 'LATEST' | 'HISTORY'
@@ -24,6 +28,7 @@ function MitigationPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
 
   useEffect(() => {
     if (!isValidProjectId(projectId)) {
@@ -65,18 +70,27 @@ function MitigationPage() {
     }
   }
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (isRegeneration = false) => {
     if (!isValidProjectId(projectId)) {
       navigate('/projects', { replace: true })
       return
     }
 
+    let customFocus = null;
+    if (isRegeneration) {
+      customFocus = window.prompt("What specific area should the new AI plan focus on? (e.g. 'Focus on budget-friendly ideas' or 'Focus on immediate weather threats')");
+      if (customFocus === null) return; // User cancelled
+    }
+
     try {
       setGenerating(true)
       setError(null)
-      const data = await generateMitigationPlan(projectId)
+      setSuccess(null)
+      const data = await generateMitigationPlan(projectId, customFocus ? { customFocus } : {})
       setPlan(data.mitigationPlan)
       setActiveTab('LATEST')
+      setSuccess("AI Mitigation Plan generated successfully!")
+      setTimeout(() => setSuccess(null), 4000)
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to generate mitigation plan')
     } finally {
@@ -86,36 +100,48 @@ function MitigationPage() {
 
   const handleUpdateRec = async (recId, newStatus, newActionNote) => {
     if (!plan) return
+    setError(null)
     try {
       const data = await updateRecommendation(plan._id, recId, {
         status: newStatus,
         actionNote: newActionNote
       })
       setPlan(data.mitigationPlan)
+      setSuccess("Task updated successfully.")
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      window.alert(err.response?.data?.message || 'Failed to update recommendation')
+      setError(err.response?.data?.message || 'Failed to update recommendation')
     }
   }
 
   const handleDeleteRec = async (recId) => {
     if (!plan) return
     if (!window.confirm("Delete this specific recommendation permanently?")) return
+    setError(null)
     try {
       const data = await deleteRecommendation(plan._id, recId)
       setPlan(data.mitigationPlan)
+      setSuccess("Task deleted permanently.")
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      window.alert(err.response?.data?.message || 'Failed to delete recommendation')
+      setError(err.response?.data?.message || 'Failed to delete recommendation')
     }
   }
 
   const handleDeletePlan = async () => {
     if (!plan) return
     if (!window.confirm("Are you sure you want to completely delete this AI plan and ALL its progress?")) return
+    setError(null)
     try {
       await deleteMitigationPlan(plan._id)
       setPlan(null)
+      setSuccess("Mitigation plan deleted successfully.")
+      if (activeTab === 'VIEW_HISTORICAL_PLAN') {
+        setActiveTab('HISTORY')
+      }
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      window.alert(err.response?.data?.message || 'Failed to delete plan')
+      setError(err.response?.data?.message || 'Failed to delete plan')
     }
   }
 
@@ -139,11 +165,16 @@ function MitigationPage() {
         />
         <div className="flex gap-2">
           {!plan && activeTab === 'LATEST' && (
-             <button onClick={handleGenerate} disabled={generating} className="px-6 py-3 dark-pro-gradient text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2">
+             <button onClick={() => handleGenerate(false)} disabled={generating} className="px-6 py-3 dark-pro-gradient text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2">
                {generating ? 'Generating AI Plan...' : 'Generate AI Action Plan'}
              </button>
           )}
-          {plan && activeTab === 'LATEST' && (
+          {plan && (activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && (
+             <button onClick={() => handleGenerate(true)} disabled={generating} className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
+               {generating ? 'Processing...' : 'Re-Generate Plan'}
+             </button>
+          )}
+          {plan && (activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && isAdmin && (
             <button onClick={handleDeletePlan} className="px-4 py-2.5 bg-red-50 text-red-600 text-sm font-bold rounded-xl hover:bg-red-100 border border-red-200 transition-colors">
               Delete Plan
             </button>
@@ -166,7 +197,7 @@ function MitigationPage() {
           <button
             onClick={() => setActiveTab('HISTORY')}
             className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'HISTORY'
+              activeTab === 'HISTORY' || activeTab === 'VIEW_HISTORICAL_PLAN'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             }`}
@@ -176,7 +207,18 @@ function MitigationPage() {
         </nav>
       </div>
 
-      {error && <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100">{error}</div>}
+      {error && (
+        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center justify-between mb-2">
+          <span className="font-medium">{error}</span>
+          <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 px-2 font-bold text-lg">&times;</button>
+        </div>
+      )}
+      {success && (
+        <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center justify-between mb-2">
+          <span className="font-medium">{success}</span>
+          <button onClick={() => setSuccess(null)} className="text-green-500 hover:text-green-700 px-2 font-bold text-lg">&times;</button>
+        </div>
+      )}
 
       {/* HISTORY TAB */}
       {activeTab === 'HISTORY' && (
@@ -189,10 +231,18 @@ function MitigationPage() {
             historyPlans.map((histPlan) => (
               <div key={histPlan._id} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <div>
-                   <p className="font-bold text-slate-900 text-lg">Plan Generated: {new Date(histPlan.createdAt).toLocaleDateString()}</p>
-                   <p className="text-sm text-slate-500 mt-1 font-medium">Engine: <span className="text-slate-800">{histPlan.aiProvider}</span> | Priority: <span className="text-slate-800">{histPlan.priorityLevel}</span> | Tasks: <span className="text-slate-800">{histPlan.totalRecommendations}</span></p>
+                  <p className="font-bold text-slate-900 text-lg">Plan Generated: {new Date(histPlan.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm text-slate-500 mt-1 font-medium">Engine: <span className="text-slate-800">{histPlan.aiProvider}</span> | Priority: <span className="text-slate-800">{histPlan.priorityLevel}</span> | Tasks: <span className="text-slate-800">{histPlan.totalRecommendations}</span></p>
                 </div>
-                <div><StatusBadge label={histPlan.planStatus} variant={histPlan.planStatus === 'COMPLETED' ? 'success' : 'default'} /></div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <StatusBadge label={histPlan.planStatus} variant={histPlan.planStatus === 'COMPLETED' ? 'success' : 'default'} />
+                  <button 
+                    onClick={() => { setPlan(histPlan); setActiveTab('VIEW_HISTORICAL_PLAN'); }}
+                    className="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-sm shadow-sm transition-colors w-full sm:w-auto text-center"
+                  >
+                    View & Update
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -209,7 +259,7 @@ function MitigationPage() {
            </div>
            <h3 className="text-xl font-bold text-slate-900 mb-2">No Active Mitigation Plan</h3>
            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Generate one to receive highly specific, action-oriented recommendations based on your unique risk profile.</p>
-           <button onClick={handleGenerate} disabled={generating} className="px-8 py-3.5 dark-pro-gradient shadow-lg shadow-slate-900/20 text-white font-bold rounded-xl hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 transition-all mx-auto flex items-center justify-center gap-2">
+           <button onClick={() => handleGenerate(false)} disabled={generating} className="px-8 py-3.5 dark-pro-gradient shadow-lg shadow-slate-900/20 text-white font-bold rounded-xl hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 transition-all mx-auto flex items-center justify-center gap-2">
              {generating && (
                <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -221,8 +271,19 @@ function MitigationPage() {
         </div>
       )}
 
-      {activeTab === 'LATEST' && plan && (
+      {/* LATEST OR HISTORICAL PLAN VIEW */}
+      {(activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && plan && (
         <div className="space-y-6">
+           {activeTab === 'VIEW_HISTORICAL_PLAN' && (
+             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+               <div className="flex items-center gap-3">
+                 <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                 <span className="font-medium">You are viewing an older plan from the Historical Archives. Updates here will modify this specific historical record.</span>
+               </div>
+               <button onClick={() => setActiveTab('HISTORY')} className="shrink-0 text-sm font-bold text-amber-700 hover:text-amber-900 underline">Back to Archives</button>
+             </div>
+           )}
+
            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
              <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Status</p><StatusBadge label={plan.planStatus} variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} /></div>
              <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Total Tasks</p><p className="text-4xl font-extrabold text-slate-900 heading-font">{plan.totalRecommendations}</p></div>

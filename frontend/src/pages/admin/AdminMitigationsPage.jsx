@@ -20,6 +20,7 @@ function AdminMitigationsPage() {
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
@@ -76,10 +77,13 @@ function AdminMitigationsPage() {
     
     try {
       setDeletingId(id)
+      setError(null)
       await deleteMitigationPlan(id)
       setPlans(prev => prev.filter(plan => plan._id !== id))
+      setSuccess("Mitigation plan deleted successfully.")
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      window.alert(err.response?.data?.message || 'Failed to delete plan')
+      setError(err.response?.data?.message || 'Failed to delete plan')
     } finally {
       setDeletingId(null)
     }
@@ -243,9 +247,22 @@ function AdminMitigationsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3">
-           <AlertTriangle className="w-5 h-5" />
-           <span className="font-medium">{error}</span>
+        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <AlertTriangle className="w-5 h-5" />
+             <span className="font-medium">{error}</span>
+           </div>
+           <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 px-2 font-bold text-lg">&times;</button>
+        </div>
+      )}
+
+      {success && (
+        <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <CheckCircle2 className="w-5 h-5" />
+             <span className="font-medium">{success}</span>
+           </div>
+           <button onClick={() => setSuccess(null)} className="text-green-500 hover:text-green-700 px-2 font-bold text-lg">&times;</button>
         </div>
       )}
 

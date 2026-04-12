@@ -11,14 +11,14 @@ const normalizeRecommendations = (recs = []) => {
 };
 
 const buildMitigationPlan = async (assessmentData) => {
-  const { riskLevel, riskScore, floodScore, earthquakeScore, weatherScore, locationContext, weatherContext } = assessmentData;
+  const { riskLevel, riskScore, floodScore, earthquakeScore, weatherScore, locationContext, weatherContext, customFocus } = assessmentData;
 
   const provider = (process.env.AI_PROVIDER || "NONE").toUpperCase();
 
   // 1) Try AI first (if enabled)
   if (provider === "GEMINI") {
     try {
-      const ai = await geminiGenerateMitigation({ riskLevel, riskScore, floodScore, earthquakeScore, weatherScore, locationContext, weatherContext });
+      const ai = await geminiGenerateMitigation({ riskLevel, riskScore, floodScore, earthquakeScore, weatherScore, locationContext, weatherContext, customFocus });
 
       return {
         priorityLevel: ai.priorityLevel || riskLevel,
