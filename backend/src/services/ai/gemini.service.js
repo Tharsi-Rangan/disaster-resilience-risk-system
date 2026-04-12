@@ -73,4 +73,27 @@ ${customFocus ? `\nCRITICAL USER REQUEST: The user specifically requested that y
   return parsed;
 };
 
-module.exports = { geminiGenerateMitigation };
+const geminiChatResponse = async (message, contextTitle, contextDetails) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY missing");
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+  const prompt = `You are a highly intelligent Disaster Mitigation AI Advisor.
+The user is asking a specific question regarding an active mitigation task in their project.
+
+TASK CONTEXT:
+Title: ${contextTitle}
+Details: ${contextDetails}
+
+USER QUESTION:
+"${message}"
+
+Provide a concise, professional, and directly applicable answer. Focus on practical construction and mitigation knowledge. Keep your response brief but highly valuable. Do not use markdown format block elements unless necessary.`;
+
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+};
+
+module.exports = { geminiGenerateMitigation, geminiChatResponse };

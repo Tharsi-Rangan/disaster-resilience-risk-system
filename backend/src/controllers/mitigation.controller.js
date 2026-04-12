@@ -80,9 +80,9 @@ const getLatestMitigationPlan = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const latest = await MitigationPlan.findOne({ projectId }).sort({
-      createdAt: -1,
-    });
+    const latest = await MitigationPlan.findOne({ projectId })
+      .populate('recommendations.updatedBy', 'name role')
+      .sort({ createdAt: -1 });
 
     if (!latest) {
       return res
@@ -104,9 +104,9 @@ const getMitigationHistory = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const plans = await MitigationPlan.find({ projectId }).sort({
-      createdAt: -1,
-    });
+    const plans = await MitigationPlan.find({ projectId })
+      .populate('recommendations.updatedBy', 'name role')
+      .sort({ createdAt: -1 });
 
     return res.json({
       message: "Mitigation history retrieved successfully ✅",
@@ -192,6 +192,7 @@ const updateRecommendation = async (req, res) => {
     }
 
     await plan.save();
+    await plan.populate('recommendations.updatedBy', 'name role');
     return res.json({ message: "Recommendation updated successfully ✅", mitigationPlan: plan });
   } catch (err) {
     return res.status(500).json({ message: err.message });
@@ -234,7 +235,22 @@ const deleteRecommendation = async (req, res) => {
     }
 
     await plan.save();
+    await plan.populate('recommendations.updatedBy', 'name role');
     return res.json({ message: "Recommendation deleted successfully ✅", mitigationPlan: plan });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/mitigation/chat
+const chatWithAI = async (req, res) => {
+  try {
+    const { message, contextTitle, contextDetails } = req.body;
+    if (!message || !contextTitle) return res.status(400).json({ message: "Message and context are required" });
+    const { geminiChatResponse } = require("../services/ai/gemini.service");
+    
+    const reply = await geminiChatResponse(message, contextTitle, contextDetails);
+    return res.json({ reply });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -247,5 +263,6 @@ module.exports = {
   deleteMitigationPlan,
   getAllMitigationPlans,
   updateRecommendation,
-  deleteRecommendation
+  deleteRecommendation,
+  chatWithAI
 };
