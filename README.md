@@ -258,50 +258,65 @@ This ensures:
 
 ---
 
-## 🚀 Vercel Deployment
+## 🚀 Deployment
 
-Deploy the frontend and backend as two separate Vercel projects from this monorepo.
+This project is deployed as two independent production services from the same monorepo:
 
-### Backend project
+* Backend API: Railway
+* Frontend application: Vercel
 
-* Root directory: `backend`
-* Build command: leave default or use `npm install`
-* Output directory: not needed for API deployment
-* Vercel serves the Express app through the `backend/api` serverless handler.
+The deployment is split this way so the Express API can scale independently from the React frontend, while the frontend can use static hosting and client-side routing support.
 
-Required backend environment variables:
+### Backend Deployment Setup
 
-* `MONGO_URI`
-* `JWT_SECRET`
+Platform: Railway
 
-Common optional backend variables, depending on features you use:
+Setup steps:
 
-* `EMAIL_FROM` / `EMAIL_USER`
-* `GOOGLE_MAPS_API_KEY`
-* `GOOGLE_ELEVATION_API_KEY`
-* `OPENWEATHER_API_KEY`
-* `GEMINI_API_KEY`
-* `AI_PROVIDER`
-* `OTP_EXPIRE_MIN`
-* `RISKDATA_MIN_FETCH_INTERVAL_MIN`
+1. Create a new Railway service from the repository.
+2. Set the service root to the `backend` folder.
+3. Ensure the Node.js app starts from the backend entry point used by the repository.
+4. Add the required environment variables in Railway.
+5. Deploy the service and confirm the API responds successfully.
 
-### Frontend project
+Backend environment variables:
 
-* Root directory: `frontend`
-* Build command: `npm run build`
-* Output directory: `dist`
-* The `frontend/vercel.json` rewrite keeps React Router working on refresh.
+* Required: `MONGO_URI`, `JWT_SECRET`
+* Optional, depending on enabled features: `EMAIL_FROM`, `EMAIL_USER`, `GOOGLE_MAPS_API_KEY`, `GOOGLE_ELEVATION_API_KEY`, `OPENWEATHER_API_KEY`, `GEMINI_API_KEY`, `AI_PROVIDER`, `OTP_EXPIRE_MIN`, `RISKDATA_MIN_FETCH_INTERVAL_MIN`
 
-Set this frontend environment variable in Vercel:
+### Frontend Deployment Setup
 
-* `VITE_API_BASE_URL=https://<your-backend-project>.vercel.app/api`
+Platform: Vercel
 
-### Resulting URLs
+Setup steps:
 
-* Frontend: Vercel-generated site URL for the `frontend` project
-* Backend: Vercel-generated `/api` URL for the `backend` project
+1. Create a separate Vercel project for the `frontend` folder.
+2. Set the build command to `npm run build`.
+3. Use `dist` as the output directory.
+4. Keep the SPA rewrite defined in `frontend/vercel.json` so React Router routes continue to work on refresh.
+5. Add the frontend environment variable in Vercel.
+6. Deploy the project and verify the application loads and connects to the backend API.
 
-The frontend already reads `VITE_API_BASE_URL`, so no code changes are needed after the Vercel env var is set.
+Frontend environment variable:
+
+* `VITE_API_BASE_URL=https://disaster-resilience-risk-system-production.up.railway.app/api`
+
+### Live URLs
+
+* Frontend application: https://disaster-resilience-risk-system-frontend-3ozvkts9d.vercel.app
+* Backend API: https://disaster-resilience-risk-system-production.up.railway.app
+
+### Evidence of Successful Deployment
+
+Deployment success was verified using the hosting dashboards and production URLs shown above.
+
+* Vercel production deployment: frontend service is live and accessible from the generated Vercel URL.
+* Railway production deployment: backend service shows an active successful deployment in the Railway dashboard.
+
+---
+## Deployment screenshots
+![Railway Deployment - Backend](image.png)
+![Vercel Deploymenr - Frontend](image-1.png)
 
 ---
 
