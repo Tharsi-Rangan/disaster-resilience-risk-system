@@ -1,0 +1,46 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - name: "Warm Up"
+      duration: 10
+      arrivalRate: 2
+    - name: "Ramp Up Load"
+      duration: 20
+      arrivalRate: 5
+    - name: "Sustained Load"
+      duration: 20
+      arrivalRate: 10
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+  variables:
+    authToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWRiMjE0ODZlNGI1MmQyY2RhMzI3MjIiLCJpYXQiOjE3NzU5Njg1ODQsImV4cCI6MTc3NTk3NTc4NH0.Mx_6k0jQZsjh_qF0ocO6MHlZuRFIQ6ud6LkeaQVWHF4"
+    projectId: "69db21486e4b52d2cda32725"
+
+scenarios:
+  - name: "GET /api/mitigation/:projectId/latest"
+    weight: 50
+    flow:
+      - get:
+          url: "/api/mitigation/{{ projectId }}/latest"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+  - name: "GET /api/mitigation/:projectId/history"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/mitigation/{{ projectId }}/history"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+  - name: "POST /api/auth/login (auth load)"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "perf-test@artillery.dev"
+            password: "Artillery123!"
