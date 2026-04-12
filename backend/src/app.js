@@ -10,9 +10,34 @@ const mitigationRoutes = require("./routes/mitigation.routes");
 
 const app = express();
 
-// Simple CORS configuration
+// Dynamic CORS configuration from environment variables
 const corsOptions = {
-  origin: "https://disaster-resilience-risk-system-frontend-fkkc0dw8v.vercel.app",
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "http://localhost:3000",
+    ];
+
+    // Add origins from environment variable
+    if (process.env.CORS_ALLOWED_ORIGINS) {
+      allowedOrigins.push(
+        ...process.env.CORS_ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+      );
+    }
+
+    // Allow any *.vercel.app domain in production
+    if (process.env.NODE_ENV === "production" && origin) {
+      if (/^https:\/\/.*\.vercel\.app$/.test(origin)) {
+        return callback(null, true);
+      }
+    }
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
