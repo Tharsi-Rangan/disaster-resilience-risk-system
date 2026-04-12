@@ -258,6 +258,53 @@ This ensures:
 
 ---
 
+## 🚀 Vercel Deployment
+
+Deploy the frontend and backend as two separate Vercel projects from this monorepo.
+
+### Backend project
+
+* Root directory: `backend`
+* Build command: leave default or use `npm install`
+* Output directory: not needed for API deployment
+* Vercel serves the Express app through the `backend/api` serverless handler.
+
+Required backend environment variables:
+
+* `MONGO_URI`
+* `JWT_SECRET`
+
+Common optional backend variables, depending on features you use:
+
+* `EMAIL_FROM` / `EMAIL_USER`
+* `GOOGLE_MAPS_API_KEY`
+* `GOOGLE_ELEVATION_API_KEY`
+* `OPENWEATHER_API_KEY`
+* `GEMINI_API_KEY`
+* `AI_PROVIDER`
+* `OTP_EXPIRE_MIN`
+* `RISKDATA_MIN_FETCH_INTERVAL_MIN`
+
+### Frontend project
+
+* Root directory: `frontend`
+* Build command: `npm run build`
+* Output directory: `dist`
+* The `frontend/vercel.json` rewrite keeps React Router working on refresh.
+
+Set this frontend environment variable in Vercel:
+
+* `VITE_API_BASE_URL=https://<your-backend-project>.vercel.app/api`
+
+### Resulting URLs
+
+* Frontend: Vercel-generated site URL for the `frontend` project
+* Backend: Vercel-generated `/api` URL for the `backend` project
+
+The frontend already reads `VITE_API_BASE_URL`, so no code changes are needed after the Vercel env var is set.
+
+---
+
 ## 🚀 Setup Instructions
 
 1. Clone repository
