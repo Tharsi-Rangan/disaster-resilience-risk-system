@@ -345,6 +345,17 @@ function MitigationPage() {
                           if (e.target.value !== rec.actionNote) handleUpdateRec(rec._id, undefined, e.target.value)
                         }}
                       />
+                      {rec.updatedBy && rec.updatedAt && (
+                        <div className="mt-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          Last updated by: <span className="text-slate-600">
+                            {rec.updatedBy.role === 'ADMIN' ? 'Admin' : 'Contractor'} 
+                            {rec.updatedBy.name ? ` (${rec.updatedBy.name})` : ''}
+                          </span> 
+                          <span className="opacity-50">•</span> 
+                          {new Date(rec.updatedAt).toLocaleString()}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
