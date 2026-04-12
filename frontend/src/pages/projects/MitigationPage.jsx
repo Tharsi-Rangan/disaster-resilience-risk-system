@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import StatusBadge from '../../components/common/StatusBadge'
+import confetti from 'canvas-confetti'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { 
   getLatestMitigationPlan, 
   generateMitigationPlan, 
   updateRecommendation,
   deleteRecommendation,
   deleteMitigationPlan,
-  getMitigationHistory
+  getMitigationHistory,
+  chatWithAiAssistant
 } from '../../services/mitigationService'
 import useAuth from '../../hooks/useAuth'
 
@@ -29,6 +33,16 @@ function MitigationPage() {
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
+
+  // AI Chat Drawer State
+  const [chatDrawerOpen, setChatDrawerOpen] = useState(false)
+  const [chatContext, setChatContext] = useState(null)
+  const [chatMessages, setChatMessages] = useState([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+
+  // Kanban Drag State
+  const [draggedRecId, setDraggedRecId] = useState(null)
 
   useEffect(() => {
     if (!isValidProjectId(projectId)) {
@@ -79,7 +93,7 @@ function MitigationPage() {
     let customFocus = null;
     if (isRegeneration) {
       customFocus = window.prompt("What specific area should the new AI plan focus on? (e.g. 'Focus on budget-friendly ideas' or 'Focus on immediate weather threats')");
-      if (customFocus === null) return; // User cancelled
+      if (customFocus === null) return; 
     }
 
     try {
@@ -106,6 +120,20 @@ function MitigationPage() {
         status: newStatus,
         actionNote: newActionNote
       })
+      
+      // Feature 1: Gamified Gamification
+      if (newStatus === 'COMPLETED') {
+        const rec = plan.recommendations.find(r => r._id === recId)
+        if (rec && rec.status !== 'COMPLETED') {
+           confetti({
+             particleCount: 150,
+             spread: 70,
+             origin: { y: 0.6 },
+             colors: ['#10B981', '#3B82F6', '#F59E0B', '#F472B6']
+           });
+        }
+      }
+
       setPlan(data.mitigationPlan)
       setSuccess("Task updated successfully.")
       setTimeout(() => setSuccess(null), 3000)
@@ -145,6 +173,111 @@ function MitigationPage() {
     }
   }
 
+  // Feature: Boardroom PDF Export
+  const exportToPDF = () => {
+    if (!plan) return;
+    const doc = new jsPDF()
+    
+    // Branding & Header
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(22)
+    doc.setTextColor(15, 23, 42) // slate-900
+    doc.text("Disaster Mitigation Executive Report", 14, 22)
+    
+    // Sub-metadata
+    doc.setFontSize(11)
+    doc.setFont("helvetica", "normal")
+    doc.setTextColor(71, 85, 105) // slate-500
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 32)
+    doc.text(`AI Risk Engine: ${plan.aiProvider || 'N/A'}`, 14, 38)
+    
+    doc.setFont("helvetica", "bold")
+    doc.text(`Overall Status:`, 14, 44)
+    doc.setFont("helvetica", "normal")
+    doc.text(`${plan.planStatus} | Priority: ${plan.priorityLevel}`, 45, 44)
+    
+    doc.setFont("helvetica", "bold")
+    doc.text(`Task Progression:`, 14, 50)
+    doc.setFont("helvetica", "normal")
+    doc.text(`${plan.completedCount} Completed / ${plan.ongoingCount} Ongoing / ${plan.recommendations.length - plan.completedCount - plan.ongoingCount} Pending`, 49, 50)
+    
+    // AutoTable for Tasks
+    const tableColumn = ["Task", "Category", "Status", "Contractor Note"]
+    const tableRows = []
+
+    plan.recommendations.forEach(rec => {
+      const recData = [
+        rec.title,
+        rec.category,
+        rec.status,
+        rec.actionNote || "No current updates."
+      ]
+      tableRows.push(recData)
+    })
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 58,
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, textColor: [51, 65, 85] },
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [248, 250, 252] }
+    })
+
+    doc.save(`Mitigation_Plan_${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
+  // Feature 2: Native HTML5 Drag & Drop
+  const handleDragStart = (e, recId) => {
+    setDraggedRecId(recId)
+    e.dataTransfer.setData('recId', recId)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e, targetStatus) => {
+    e.preventDefault()
+    const recId = e.dataTransfer.getData('recId')
+    setDraggedRecId(null)
+    if (!recId) return
+    
+    const rec = plan.recommendations.find(r => r._id === recId)
+    if (rec && rec.status !== targetStatus) {
+      handleUpdateRec(rec._id, targetStatus, rec.actionNote)
+    }
+  }
+
+  // Feature 3: AI Co-Pilot Logic
+  const openAIChat = (rec) => {
+    setChatContext(rec)
+    setChatMessages([
+      { role: 'ai', text: `Hi! I'm your AI Mitigation Advisor. You're currently viewing the task: "${rec.title}". How can I assist you with completing or planning this task?` }
+    ])
+    setChatDrawerOpen(true)
+  }
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || !chatContext) return
+    const msg = chatInput
+    setChatInput('')
+    setChatMessages(prev => [...prev, { role: 'user', text: msg }])
+    setChatLoading(true)
+    
+    try {
+      const data = await chatWithAiAssistant(msg, chatContext.title, chatContext.details)
+      setChatMessages(prev => [...prev, { role: 'ai', text: data.reply }])
+    } catch (err) {
+      setChatMessages(prev => [...prev, { role: 'ai', text: 'Error: Connection to AI core lost. Please check your network and try again.' }])
+    } finally {
+      setChatLoading(false)
+    }
+  }
+
   if (loading && !plan && historyPlans.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -157,28 +290,35 @@ function MitigationPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative overflow-hidden min-h-screen">
+      {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <PageHeader 
           title="Mitigation Planning" 
-          description="Manage AI-driven disaster mitigation tasks and project resilience progress." 
+          description="Manage AI-driven disaster mitigation tasks with Drag & Drop Kanban workflow." 
         />
         <div className="flex gap-2">
-          {!plan && activeTab === 'LATEST' && (
-             <button onClick={() => handleGenerate(false)} disabled={generating} className="px-6 py-3 dark-pro-gradient text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2">
-               {generating ? 'Generating AI Plan...' : 'Generate AI Action Plan'}
+           {!plan && activeTab === 'LATEST' && (
+              <button onClick={() => handleGenerate(false)} disabled={generating} className="px-6 py-3 dark-pro-gradient text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center gap-2">
+                {generating ? 'Generating AI Plan...' : 'Generate AI Action Plan'}
+              </button>
+           )}
+           {plan && (activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && (
+              <>
+                <button onClick={exportToPDF} className="px-5 py-2.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors shadow-sm flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  Export PDF
+                </button>
+                <button onClick={() => handleGenerate(true)} disabled={generating} className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
+                  {generating ? 'Processing...' : 'Re-Generate'}
+                </button>
+              </>
+           )}
+           {plan && (activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && isAdmin && (
+             <button onClick={handleDeletePlan} className="px-4 py-2.5 bg-red-50 text-red-600 text-sm font-bold rounded-xl hover:bg-red-100 border border-red-200 transition-colors">
+               Delete Plan
              </button>
-          )}
-          {plan && (activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && (
-             <button onClick={() => handleGenerate(true)} disabled={generating} className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2">
-               {generating ? 'Processing...' : 'Re-Generate Plan'}
-             </button>
-          )}
-          {plan && (activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && isAdmin && (
-            <button onClick={handleDeletePlan} className="px-4 py-2.5 bg-red-50 text-red-600 text-sm font-bold rounded-xl hover:bg-red-100 border border-red-200 transition-colors">
-              Delete Plan
-            </button>
-          )}
+           )}
         </div>
       </div>
 
@@ -208,13 +348,13 @@ function MitigationPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center justify-between mb-2">
+        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center justify-between mb-2 shadow-sm animate-pulse">
           <span className="font-medium">{error}</span>
           <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 px-2 font-bold text-lg">&times;</button>
         </div>
       )}
       {success && (
-        <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center justify-between mb-2">
+        <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center justify-between mb-2 shadow-sm">
           <span className="font-medium">{success}</span>
           <button onClick={() => setSuccess(null)} className="text-green-500 hover:text-green-700 px-2 font-bold text-lg">&times;</button>
         </div>
@@ -224,12 +364,12 @@ function MitigationPage() {
       {activeTab === 'HISTORY' && (
         <div className="space-y-4">
           {historyPlans.length === 0 ? (
-            <div className="text-center p-12 bg-white rounded-2xl border border-slate-200">
+            <div className="text-center p-12 bg-white rounded-2xl border border-slate-200 shadow-sm">
               <p className="text-slate-500 font-medium">No historical mitigation plans found.</p>
             </div>
           ) : (
             historyPlans.map((histPlan) => (
-              <div key={histPlan._id} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <div key={histPlan._id} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-blue-300 transition-colors">
                 <div>
                   <p className="font-bold text-slate-900 text-lg">Plan Generated: {new Date(histPlan.createdAt).toLocaleDateString()}</p>
                   <p className="text-sm text-slate-500 mt-1 font-medium">Engine: <span className="text-slate-800">{histPlan.aiProvider}</span> | Priority: <span className="text-slate-800">{histPlan.priorityLevel}</span> | Tasks: <span className="text-slate-800">{histPlan.totalRecommendations}</span></p>
@@ -238,9 +378,9 @@ function MitigationPage() {
                   <StatusBadge label={histPlan.planStatus} variant={histPlan.planStatus === 'COMPLETED' ? 'success' : 'default'} />
                   <button 
                     onClick={() => { setPlan(histPlan); setActiveTab('VIEW_HISTORICAL_PLAN'); }}
-                    className="px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-sm shadow-sm transition-colors w-full sm:w-auto text-center"
+                    className="px-4 py-2 bg-white text-blue-600 border border-blue-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 font-bold text-sm shadow-sm transition-colors w-full sm:w-auto text-center"
                   >
-                    View & Update
+                    View Board
                   </button>
                 </div>
               </div>
@@ -249,7 +389,7 @@ function MitigationPage() {
         </div>
       )}
 
-      {/* LATEST PLAN TAB */}
+      {/* NO ACTIVE PLAN VIEW */}
       {activeTab === 'LATEST' && !plan && !loading && (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-16 text-center">
            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm mb-4">
@@ -260,18 +400,12 @@ function MitigationPage() {
            <h3 className="text-xl font-bold text-slate-900 mb-2">No Active Mitigation Plan</h3>
            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Generate one to receive highly specific, action-oriented recommendations based on your unique risk profile.</p>
            <button onClick={() => handleGenerate(false)} disabled={generating} className="px-8 py-3.5 dark-pro-gradient shadow-lg shadow-slate-900/20 text-white font-bold rounded-xl hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 transition-all mx-auto flex items-center justify-center gap-2">
-             {generating && (
-               <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-               </svg>
-             )}
              {generating ? 'Processing Risk Intelligence...' : 'Generate Advanced AI Plan Now'}
            </button>
         </div>
       )}
 
-      {/* LATEST OR HISTORICAL PLAN VIEW */}
+      {/* PLAN VIEW (KANBAN BOARD) */}
       {(activeTab === 'LATEST' || activeTab === 'VIEW_HISTORICAL_PLAN') && plan && (
         <div className="space-y-6">
            {activeTab === 'VIEW_HISTORICAL_PLAN' && (
@@ -284,83 +418,158 @@ function MitigationPage() {
              </div>
            )}
 
+           {/* Metrics Component */}
            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-             <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Status</p><StatusBadge label={plan.planStatus} variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} /></div>
+             <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Overall Status</p><StatusBadge label={plan.planStatus} variant={plan.planStatus === 'COMPLETED' ? 'success' : plan.planStatus === 'IN_PROGRESS' ? 'info' : 'warning'} /></div>
              <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Total Tasks</p><p className="text-4xl font-extrabold text-slate-900 heading-font">{plan.totalRecommendations}</p></div>
-             <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Ongoing</p><p className="text-4xl font-extrabold text-slate-600 heading-font">{plan.ongoingCount}</p></div>
+             <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Ongoing Tasks</p><p className="text-4xl font-extrabold text-slate-600 heading-font">{plan.ongoingCount}</p></div>
              <div className="p-6 bg-white/90 glass-panel rounded-2xl border border-slate-200/80 shadow-sm"><p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Completed</p><p className="text-4xl font-extrabold text-emerald-500 heading-font">{plan.completedCount}</p></div>
            </div>
 
-           <div className="space-y-5">
-              <h3 className="text-xl font-extrabold text-slate-800 heading-font tracking-tight">Actionable Recommendations</h3>
-             {plan.recommendations.length === 0 ? (
-                <div className="text-center p-8 bg-white border border-slate-200 rounded-2xl text-slate-500 font-medium">All recommendations deleted from this plan.</div>
-             ) : (
-                plan.recommendations.map((rec, index) => (
-                  <div key={rec._id} className="bg-white/90 glass-panel p-6 rounded-3xl border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50/50 rounded-full blur-3xl -z-10 translate-x-10 -translate-y-10 group-hover:bg-slate-100/60 transition-colors"></div>
-                    <div className="flex flex-col md:flex-row justify-between gap-6 mb-5 relative z-10">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">{index + 1}</span>
-                          <h4 className="text-xl font-bold text-slate-900">{rec.title}</h4>
-                          <StatusBadge label={rec.category} variant="default" />
-                        </div>
-                        <p className="text-slate-600 text-base leading-relaxed ml-11 max-w-3xl">{rec.details}</p>
-                      </div>
-                      
-                      <div className="shrink-0 flex items-start gap-2 -mt-1">
-                         <select 
-                           value={rec.status}
-                           onChange={(e) => handleUpdateRec(rec._id, e.target.value, rec.actionNote)}
-                           className={`px-4 py-2.5 border rounded-xl outline-none font-bold text-sm shadow-sm cursor-pointer ${
-                              rec.status === 'COMPLETED' ? 'bg-green-50 border-green-200 text-green-700' :
-                              rec.status === 'ONGOING' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                              'bg-slate-50 border-slate-200 text-slate-700'
-                           }`}
-                         >
-                           <option value="PENDING">PENDING</option>
-                           <option value="ONGOING">ONGOING</option>
-                           <option value="COMPLETED">COMPLETED</option>
-                         </select>
+           {/* Kanban Board Container */}
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+              {[
+                { id: 'PENDING', title: 'Pending Pipeline', border: 'border-slate-200', bg: 'bg-slate-100/50', text: 'text-slate-700', badge: 'bg-slate-200 text-slate-700' },
+                { id: 'ONGOING', title: 'Active Progress', border: 'border-blue-200', bg: 'bg-blue-50/50', text: 'text-blue-800', badge: 'bg-blue-200 text-blue-800' },
+                { id: 'COMPLETED', title: 'Finished Work', border: 'border-green-200', bg: 'bg-green-50/50', text: 'text-green-800', badge: 'bg-green-200 text-green-800' }
+              ].map(column => (
+                <div 
+                  key={column.id} 
+                  className={`flex flex-col rounded-3xl border-2 border-dashed ${column.border} ${column.bg} p-4 min-h-[500px] transition-colors`}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, column.id)}
+                >
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className={`text-sm font-extrabold tracking-widest uppercase ${column.text}`}>{column.title}</h3>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${column.badge}`}>
+                      {plan.recommendations.filter(r => r.status === column.id).length}
+                    </span>
+                  </div>
 
-                         <button 
-                           onClick={() => handleDeleteRec(rec._id)} 
-                           className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100" 
-                           title="Delete Task"
-                         >
-                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                         </button>
-                      </div>
-                    </div>
+                  <div className="flex-1 space-y-4">
+                    {plan.recommendations.filter(r => r.status === column.id).map((rec) => (
+                      <div 
+                        key={rec._id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, rec._id)}
+                        onDragEnd={() => setDraggedRecId(null)}
+                        className={`bg-white rounded-2xl p-5 border ${draggedRecId === rec._id ? 'border-blue-400 shadow-xl opacity-50 scale-95' : 'border-slate-200 shadow-sm hover:shadow-md'} transition-all cursor-grab active:cursor-grabbing group relative`}
+                      >
+                         <div className="flex justify-between items-start mb-2 gap-2">
+                            <h4 className="font-bold text-slate-900 leading-tight">{rec.title}</h4>
+                            <button onClick={() => openAIChat(rec)} className="shrink-0 p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors" title="Ask AI Co-Pilot">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            </button>
+                         </div>
+                         <p className="text-xs text-slate-500 mb-4 line-clamp-3">{rec.details}</p>
+                         
+                         <div className="border-t border-slate-100 pt-3">
+                            <input 
+                              type="text"
+                              defaultValue={rec.actionNote}
+                              placeholder="Add progress note..."
+                              className="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                              onBlur={(e) => {
+                                if (e.target.value !== rec.actionNote) handleUpdateRec(rec._id, rec.status, e.target.value)
+                              }}
+                            />
+                            {rec.updatedBy && rec.updatedAt && (
+                              <div className="mt-2 text-[10px] font-medium text-slate-400">
+                                Last: <span className="text-slate-600">{rec.updatedBy.role === 'ADMIN' ? 'Admin' : 'Contractor'} {rec.updatedBy.name ? `(${rec.updatedBy.name})` : ''}</span>
+                              </div>
+                            )}
+                         </div>
 
-                    <div className="ml-11">
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Contractor Note / Progress Update</label>
-                      <input 
-                        type="text"
-                        defaultValue={rec.actionNote}
-                        placeholder="Add an action note (e.g., Materials ordered, site cleared...)"
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50"
-                        onBlur={(e) => {
-                          if (e.target.value !== rec.actionNote) handleUpdateRec(rec._id, undefined, e.target.value)
-                        }}
-                      />
-                      {rec.updatedBy && rec.updatedAt && (
-                        <div className="mt-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          Last updated by: <span className="text-slate-600">
-                            {rec.updatedBy.role === 'ADMIN' ? 'Admin' : 'Contractor'} 
-                            {rec.updatedBy.name ? ` (${rec.updatedBy.name})` : ''}
-                          </span> 
-                          <span className="opacity-50">•</span> 
-                          {new Date(rec.updatedAt).toLocaleString()}
-                        </div>
-                      )}
+                         <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button onClick={() => handleDeleteRec(rec._id)} className="p-1.5 bg-red-100 text-red-600 rounded-full hover:bg-red-600 hover:text-white shadow-sm" title="Delete Task">
+                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                           </button>
+                         </div>
+                      </div>
+                    ))}
+                    
+                    {plan.recommendations.filter(r => r.status === column.id).length === 0 && (
+                      <div className="h-full flex items-center justify-center p-8 text-center text-slate-400 text-sm font-medium border-2 border-dashed border-transparent rounded-2xl">
+                        Drop tasks here
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+           </div>
+        </div>
+      )}
+
+      {/* Feature 3: Sliding AI Co-Pilot Drawer Overlay */}
+      {chatDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <div 
+             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+             onClick={() => setChatDrawerOpen(false)}
+          ></div>
+          
+          {/* Drawer content */}
+          <div className="relative w-full max-w-md h-full bg-slate-900 flex flex-col shadow-2xl animate-slide-in shadow-black/50 border-l border-slate-700">
+            {/* Header */}
+            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-800/50">
+               <div className="flex items-center gap-3">
+                 <div className="flex h-10 w-10 items-center justify-center rounded-xl dark-pro-gradient border border-blue-400/30 text-white shadow-lg">
+                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                 </div>
+                 <div>
+                   <h3 className="text-white font-bold leading-tight">AI Risk Co-Pilot</h3>
+                   <p className="text-blue-400 text-xs font-medium">Gemini Advisor Online</p>
+                 </div>
+               </div>
+               <button onClick={() => setChatDrawerOpen(false)} className="text-slate-400 hover:text-white p-2">
+                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+               </button>
+            </div>
+
+            {/* Chat Body */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 font-mono text-sm">
+                {chatMessages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-slate-800 text-slate-300 border border-slate-700 rounded-tl-sm'}`}>
+                      {msg.text}
                     </div>
                   </div>
-                ))
-             )}
-           </div>
+                ))}
+                {chatLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-sm px-4 py-3 flex gap-2 items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-75"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-150"></div>
+                    </div>
+                  </div>
+                )}
+            </div>
+
+            {/* Input Footer */}
+            <div className="p-4 bg-slate-800/80 border-t border-white/10">
+               <form 
+                 onSubmit={(e) => { e.preventDefault(); sendChatMessage() }} 
+                 className="flex gap-2"
+               >
+                 <input 
+                   type="text" 
+                   value={chatInput}
+                   onChange={(e) => setChatInput(e.target.value)}
+                   placeholder="Ask about materials, budget, timeline..."
+                   className="flex-1 bg-slate-900 border border-slate-700 text-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                 />
+                 <button 
+                   type="submit" 
+                   disabled={chatLoading || !chatInput.trim()}
+                   className="px-4 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                 >
+                   Send
+                 </button>
+               </form>
+            </div>
+          </div>
         </div>
       )}
     </div>
