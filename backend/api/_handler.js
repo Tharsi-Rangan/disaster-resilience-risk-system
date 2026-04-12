@@ -13,10 +13,17 @@ const allowedOrigins = (
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const vercelPreviewOriginPattern =
+  /^https:\/\/disaster-resilience-risk-system-frontend(?:-[a-z0-9]+)?\.vercel\.app$/i;
+
+function isOriginAllowed(origin) {
+  return allowedOrigins.includes(origin) || vercelPreviewOriginPattern.test(origin);
+}
+
 function applyCorsHeaders(req, res) {
   const requestOrigin = req.headers.origin;
 
-  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+  if (requestOrigin && isOriginAllowed(requestOrigin)) {
     res.setHeader("Access-Control-Allow-Origin", requestOrigin);
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Credentials", "true");

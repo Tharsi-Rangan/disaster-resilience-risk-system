@@ -17,9 +17,16 @@ const allowedOrigins = (
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const vercelPreviewOriginPattern =
+  /^https:\/\/disaster-resilience-risk-system-frontend(?:-[a-z0-9]+)?\.vercel\.app$/i;
+
+function isOriginAllowed(origin) {
+  return allowedOrigins.includes(origin) || vercelPreviewOriginPattern.test(origin);
+}
+
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || isOriginAllowed(origin)) {
       callback(null, true);
       return;
     }
