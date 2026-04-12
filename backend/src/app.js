@@ -17,11 +17,15 @@ const allowedOrigins = (
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const vercelPreviewOriginPattern =
-  /^https:\/\/disaster-resilience-risk-system-frontend(?:-[a-z0-9]+)?\.vercel\.app$/i;
+const vercelFrontendOriginPatterns = [
+  /^https:\/\/disaster-resilience-risk-system(?:-[a-z0-9]+)?\.vercel\.app$/i,
+  /^https:\/\/disaster-resilience-risk-system1(?:-[a-z0-9]+)?\.vercel\.app$/i,
+  /^https:\/\/disaster-resilience-risk-system-frontend(?:-[a-z0-9]+)?\.vercel\.app$/i,
+];
 
 function isOriginAllowed(origin) {
-  return allowedOrigins.includes(origin) || vercelPreviewOriginPattern.test(origin);
+  return allowedOrigins.includes(origin)
+    || vercelFrontendOriginPatterns.some((pattern) => pattern.test(origin));
 }
 
 const corsOptions = {
