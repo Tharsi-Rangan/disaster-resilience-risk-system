@@ -34,3 +34,8 @@ export const deleteMitigationPlan = async (planId) => {
   const response = await apiClient.delete(`/mitigation/${planId}`)
   return response.data
 }
+
+export const chatWithAiAssistant = async (message, contextTitle, contextDetails) => {
+  const response = await apiClient.post('/mitigation/chat', { message, contextTitle, contextDetails })
+  return response.data
+}
