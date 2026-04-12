@@ -105,27 +105,31 @@ export default function AssessmentPage() {
   const messageStyles =
     messageType === "success"
       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : messageType === "error"
-      ? "border-red-200 bg-red-50 text-red-700"
-      : "border-slate-200 bg-white text-slate-600";
+      : message.toLowerCase().includes("not found")
+      ? "border-amber-200 bg-amber-50 text-amber-700"
+      : "border-red-200 bg-red-50 text-red-700";
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200/80 bg-white/90 glass-panel p-8 shadow-md">
+      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-md">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 heading-font tracking-tight">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
               Risk Assessment Engine
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
-              Component 3 — Run simulations and monitor infrastructure risk scores.
+              Component 3 — Run simulations and monitor infrastructure risk
+              scores.
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              Project ID: {projectId}
             </p>
           </div>
 
           <button
             onClick={handleRunAssessment}
             disabled={loading}
-            className="rounded-xl dark-pro-gradient px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/40 hover:-translate-y-0.5 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+            className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
           >
             {loading ? "Processing..." : "Run Assessment Simulation"}
           </button>
@@ -133,20 +137,24 @@ export default function AssessmentPage() {
       </div>
 
       {message && (
-        <div className={`rounded-2xl border p-4 shadow-sm ${messageStyles}`}>
-          <p className="text-sm font-medium">{message}</p>
+        <div className={`rounded-xl border p-4 text-sm ${messageStyles}`}>
+          {message}
         </div>
       )}
 
-      {loading && !latest && history.length === 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-500">Loading assessment data...</p>
+      {loading && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-sm text-slate-500">Loading...</p>
         </div>
       )}
 
       <AssessmentCard latest={latest} />
 
-      <AssessmentHistoryTable history={history} onDelete={handleDelete} />
+      <AssessmentHistoryTable
+        history={history}
+        onDelete={handleDelete}
+        canDelete={false}
+      />
     </div>
   );
 }
