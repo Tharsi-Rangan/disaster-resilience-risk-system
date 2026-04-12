@@ -121,8 +121,8 @@ Deployment success was verified using the hosting dashboards and production URLs
 
 ---
 ## Deployment screenshots
-![Railway Deployment - Backend](image.png)
-![Vercel Deploymenr - Frontend](image-1.png)
+![Railway Deployment - Backend]
+![Vercel Deploymenr - Frontend]
 ## 🔐 Database Design (ERD)
 
 ```mermaid
