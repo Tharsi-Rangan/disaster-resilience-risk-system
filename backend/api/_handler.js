@@ -5,8 +5,35 @@ const connectDB = require("../src/config/db");
 
 let dbReadyPromise = null;
 
+// Dynamic CORS origin detection
+function getCorsOrigin(requestOrigin) {
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+  ];
+
+  // Add origins from environment variable
+  if (process.env.CORS_ALLOWED_ORIGINS) {
+    allowedOrigins.push(
+      ...process.env.CORS_ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+    );
+  }
+
+  // Allow any *.vercel.app domain in production
+  if (process.env.NODE_ENV === "production" && requestOrigin) {
+    if (/^https:\/\/.*\.vercel\.app$/.test(requestOrigin)) {
+      return requestOrigin;
+    }
+  }
+
+  return allowedOrigins.includes(requestOrigin) ? requestOrigin : null;
+}
+
 function applyCorsHeaders(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://disaster-resilience-risk-system-frontend-fkkc0dw8v.vercel.app");
+  const origin = getCorsOrigin(req.headers.origin);
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 }
