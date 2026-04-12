@@ -1,0 +1,28 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/api"
+    },
+    {
+      "source": "/auth/(.*)",
+      "destination": "/api/auth/$1"
+    },
+    {
+      "source": "/projects/(.*)",
+      "destination": "/api/projects/$1"
+    },
+    {
+      "source": "/risk-data/(.*)",
+      "destination": "/api/risk-data/$1"
+    },
+    {
+      "source": "/assessments/(.*)",
+      "destination": "/api/assessments/$1"
+    },
+    {
+      "source": "/mitigation/(.*)",
+      "destination": "/api/mitigation/$1"
+    }
+  ]
+}
