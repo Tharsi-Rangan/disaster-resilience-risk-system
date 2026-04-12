@@ -1,0 +1,53 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - name: "Warm Up"
+      duration: 10
+      arrivalRate: 2
+    - name: "Ramp Up Load"
+      duration: 20
+      arrivalRate: 5
+    - name: "Sustained Load"
+      duration: 20
+      arrivalRate: 10
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+  # NOTE: Replace this token with a real JWT from your running backend
+  # To get one: POST /api/auth/login with valid credentials
+  # Then paste the token value below
+  variables:
+    authToken: "REPLACE_WITH_REAL_JWT_TOKEN"
+    projectId: "REPLACE_WITH_REAL_PROJECT_ID"
+
+scenarios:
+  - name: "GET /api/mitigation/:projectId/latest"
+    weight: 50
+    flow:
+      - get:
+          url: "/api/mitigation/{{ projectId }}/latest"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  - name: "GET /api/mitigation/:projectId/history"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/mitigation/{{ projectId }}/history"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  - name: "POST /api/auth/login (auth endpoint load)"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "test@example.com"
+            password: "TestPass123!"
