@@ -3,6 +3,25 @@ const geocodeService = require("../services/geocode.service");
 
 const VALID_STATUSES = ["DRAFT", "ANALYZING", "APPROVED", "HIGH_RISK"];
 
+function isValidCoordinateRange(lat, lng) {
+  return Number.isFinite(lat)
+    && Number.isFinite(lng)
+    && lat >= -90
+    && lat <= 90
+    && lng >= -180
+    && lng <= 180;
+}
+
+function isPastDate(inputDate) {
+  const date = new Date(inputDate);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return date < today;
+}
+
 exports.getMapsApiKey = async (req, res) => {
   try {
     const apiKey = String(process.env.GOOGLE_MAPS_API_KEY || "")
@@ -34,7 +53,15 @@ exports.createProject = async (req, res) => {
       return res.status(400).json({ message: "startDate must be before endDate" });
     }
 
+    if (startDate && isPastDate(startDate)) {
+      return res.status(400).json({ message: "startDate cannot be in the past" });
+    }
+
     const coordinates = await geocodeService.getCoordinates(location.address);
+
+    if (!isValidCoordinateRange(coordinates?.lat, coordinates?.lng)) {
+      return res.status(400).json({ message: "Invalid geocoded coordinates" });
+    }
 
     const project = new Project({
       title,

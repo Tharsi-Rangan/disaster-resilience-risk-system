@@ -1,0 +1,42 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - name: "Warm Up"
+      duration: 20
+      arrivalRate: 5
+    - name: "Project Component Load"
+      duration: 60
+      arrivalRate: 10
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+  variables:
+    authToken: "REPLACE_WITH_TOKEN_FROM_artillery-setup.js"
+
+scenarios:
+  - name: "POST /api/projects (Create load)"
+    weight: 60
+    flow:
+      - post:
+          url: "/api/projects"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            title: "Perf Project"
+            description: "Performance test request"
+            projectType: "bridge"
+            location:
+              address: "Colombo, Sri Lanka"
+            budget: 1000000
+            startDate: "2099-01-10"
+            endDate: "2099-03-10"
+
+  - name: "GET /api/projects (Search load)"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/projects?page=1&limit=10&search=Perf"
+          headers:
+            Authorization: "Bearer {{ authToken }}"

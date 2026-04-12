@@ -5,8 +5,10 @@
   "scripts": {
     "test":              "set NODE_ENV=test && jest --detectOpenHandles --forceExit",
     "test:unit":         "set NODE_ENV=test && jest --testPathPatterns=src/__tests__ --verbose --forceExit",
-    "test:integration":  "set NODE_ENV=test && jest --testPathPatterns=mitigation.integration --verbose --forceExit",
+    "test:integration":  "set NODE_ENV=test && jest --testPathPatterns=\"mitigation.integration|project.integration\" --verbose --forceExit",
     "test:performance":  "artillery run artillery.mitigation.yml --output artillery-report.json",
+    "test:performance:project": "artillery run artillery.project.yml --output artillery-project-report.json",
+    "test:performance:project:report": "artillery report artillery-project-report.json --output artillery-project-report.html",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
