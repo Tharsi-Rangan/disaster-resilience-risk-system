@@ -242,6 +242,20 @@ const deleteRecommendation = async (req, res) => {
   }
 };
 
+// POST /api/mitigation/chat
+const chatWithAI = async (req, res) => {
+  try {
+    const { message, contextTitle, contextDetails } = req.body;
+    if (!message || !contextTitle) return res.status(400).json({ message: "Message and context are required" });
+    const { geminiChatResponse } = require("../services/ai/gemini.service");
+    
+    const reply = await geminiChatResponse(message, contextTitle, contextDetails);
+    return res.json({ reply });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   generateMitigationPlan,
   getLatestMitigationPlan,
@@ -249,5 +263,6 @@ module.exports = {
   deleteMitigationPlan,
   getAllMitigationPlans,
   updateRecommendation,
-  deleteRecommendation
+  deleteRecommendation,
+  chatWithAI
 };

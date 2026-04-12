@@ -10,6 +10,7 @@ const {
   getAllMitigationPlans,
   updateRecommendation,
   deleteRecommendation,
+  chatWithAI
 } = require("../controllers/mitigation.controller");
 
 // test route (protected)
@@ -63,6 +64,13 @@ router.delete(
   authMiddleware,
   requireRole("ADMIN", "CONTRACTOR"),
   deleteRecommendation
+);
+
+router.post(
+  "/chat",
+  authMiddleware,
+  requireRole("ADMIN", "CONTRACTOR"),
+  chatWithAI
 );
 
 module.exports = router;
