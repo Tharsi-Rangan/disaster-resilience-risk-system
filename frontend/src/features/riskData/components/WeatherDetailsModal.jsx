@@ -1,6 +1,46 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Cloud, X } from 'lucide-react'
+import {
+  Cloud,
+  CloudRain,
+  Cloudy,
+  Droplets,
+  Eye,
+  Gauge,
+  MapPinned,
+  Thermometer,
+  Wind,
+  X,
+} from 'lucide-react'
+
+function formatMetricValue(value) {
+  if (value === null || value === undefined || value === '') return 'N/A'
+  if (typeof value === 'number') return Number.isInteger(value) ? value : value.toFixed(2)
+  return value
+}
+
+function WeatherDetailCard({ detail }) {
+  const Icon = detail.icon
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
+            {detail.label}
+          </p>
+          <p className="text-4xl font-black leading-none text-slate-900">
+            {formatMetricValue(detail.value)}
+          </p>
+          <p className="mt-1 text-xs font-medium text-slate-500">{detail.unit}</p>
+        </div>
+        <div className={`rounded-xl p-2 ${detail.iconClassName}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function WeatherDetailsModal({ snapshot }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -34,53 +74,68 @@ function WeatherDetailsModal({ snapshot }) {
       label: 'Pressure',
       value: snapshot.pressure,
       unit: 'hPa',
-      icon: '🔽'
+      icon: Gauge,
+      iconClassName: 'bg-slate-100 text-slate-700',
     },
     {
       label: 'Visibility',
       value: snapshot.visibility,
       unit: 'm',
-      icon: '👁️'
+      icon: Eye,
+      iconClassName: 'bg-indigo-100 text-indigo-700',
     },
     {
       label: 'Humidity',
       value: snapshot.humidity,
       unit: '%',
-      icon: '💧'
+      icon: Droplets,
+      iconClassName: 'bg-cyan-100 text-cyan-700',
     },
     {
       label: 'Cloudiness',
       value: snapshot.cloudiness,
       unit: '%',
-      icon: '☁️'
+      icon: Cloudy,
+      iconClassName: 'bg-slate-100 text-slate-700',
     },
     {
       label: 'Temperature',
       value: snapshot.temperature,
-      unit: '°C',
-      icon: '🌡️'
+      unit: 'C',
+      icon: Thermometer,
+      iconClassName: 'bg-amber-100 text-amber-700',
     },
     {
       label: 'Wind Speed',
       value: snapshot.windSpeed,
       unit: 'm/s',
-      icon: '💨'
+      icon: Wind,
+      iconClassName: 'bg-sky-100 text-sky-700',
     },
     {
       label: 'Rainfall',
       value: snapshot.rainfall,
       unit: 'mm',
-      icon: '🌧️'
+      icon: CloudRain,
+      iconClassName: 'bg-blue-100 text-blue-700',
+    },
+    {
+      label: 'Elevation',
+      value: snapshot.elevation,
+      unit: 'm above sea level',
+      icon: MapPinned,
+      iconClassName: 'bg-emerald-100 text-emerald-700',
     },
     {
       label: 'Weather Code',
-      value: snapshot.weatherCode || 'N/A',
+      value: snapshot.weatherCode ?? 'N/A',
       unit: 'WMO',
-      icon: '📡'
-    }
+      icon: Cloud,
+      iconClassName: 'bg-violet-100 text-violet-700',
+    },
   ]
 
-  const hasWeatherData = weatherDetails.some((d) => d.value !== null && d.value !== undefined)
+  const hasWeatherData = weatherDetails.some((detail) => detail.value !== null && detail.value !== undefined)
 
   if (!hasWeatherData) return null
 
@@ -132,27 +187,15 @@ function WeatherDetailsModal({ snapshot }) {
                 <p className="mt-1 text-sm text-blue-900">
                   <strong>Fetched:</strong> {new Date(snapshot.fetchedAt).toLocaleString()}
                 </p>
+                <p className="mt-1 text-sm text-blue-900">
+                  <strong>Elevation:</strong>{' '}
+                  {snapshot.elevation != null ? `${formatMetricValue(snapshot.elevation)} m above sea level` : 'Elevation data unavailable'}
+                </p>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
                 {weatherDetails.map((detail) => (
-                  <div
-                    key={detail.label}
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
-                          {detail.label}
-                        </p>
-                        <p className="text-4xl font-black leading-none text-slate-900">
-                          {detail.value !== null && detail.value !== undefined ? detail.value : 'N/A'}
-                        </p>
-                        <p className="mt-1 text-xs font-medium text-slate-500">{detail.unit}</p>
-                      </div>
-                      <span className="text-3xl" aria-hidden="true">{detail.icon}</span>
-                    </div>
-                  </div>
+                  <WeatherDetailCard key={detail.label} detail={detail} />
                 ))}
               </div>
 

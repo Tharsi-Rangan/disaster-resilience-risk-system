@@ -32,6 +32,8 @@ const RiskSnapshotSchema = new mongoose.Schema(
     riverDischarge: { type: Number, default: null }, // m3/s from flood API
     riverDischargeMean: { type: Number, default: null }, // Average of returned discharge values
     floodSourceStatus: { type: String, enum: ["ok", "failed"], default: "ok" },
+    elevation: { type: Number, default: null }, // meters above sea level
+    elevationSourceStatus: { type: String, enum: ["ok", "failed"], default: "ok" },
 
     fetchedAt: {
       type: Date,

@@ -83,6 +83,36 @@ function SystemInsights({ snapshot }) {
     })
   }
 
+  if (snapshot.elevationSourceStatus === 'failed') {
+    insights.push({
+      type: 'caution',
+      icon: Mountain,
+      text: 'Elevation data is currently unavailable.',
+    })
+  } else if (snapshot.elevation != null) {
+    const elevation = Number(snapshot.elevation)
+
+    if (Number.isFinite(elevation) && elevation < 10) {
+      insights.push({
+        type: 'warning',
+        icon: Mountain,
+        text: 'Low elevation may increase flood vulnerability.',
+      })
+    } else if (Number.isFinite(elevation) && elevation <= 50) {
+      insights.push({
+        type: 'caution',
+        icon: Mountain,
+        text: 'Moderate elevation; monitor rainfall impact.',
+      })
+    } else if (Number.isFinite(elevation) && elevation > 50) {
+      insights.push({
+        type: 'safe',
+        icon: Mountain,
+        text: 'Higher elevation may reduce direct flood exposure.',
+      })
+    }
+  }
+
   if (snapshot.floodRiskIndex > 75) {
     insights.push({
       type: 'danger',

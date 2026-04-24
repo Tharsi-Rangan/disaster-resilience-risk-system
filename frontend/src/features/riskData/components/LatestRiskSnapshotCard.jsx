@@ -22,6 +22,11 @@ function InfoTile({ icon, label, value, iconClassName }) {
   )
 }
 
+function formatElevationText(snapshot) {
+  if (snapshot?.elevation == null) return 'Elevation data unavailable'
+  return `Elevation: ${snapshot.elevation} m above sea level`
+}
+
 function LatestRiskSnapshotCard({ snapshot }) {
   if (!snapshot) return null
 
@@ -91,6 +96,20 @@ function LatestRiskSnapshotCard({ snapshot }) {
               </div>
             </div>
           )}
+
+          <div className="mt-4 rounded-2xl border border-emerald-100 bg-linear-to-r from-emerald-50 to-lime-50 p-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-white p-2 shadow-sm">
+                <Mountain className="h-4 w-4 text-emerald-700" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Terrain Context</p>
+                <p className="text-sm text-slate-700">
+                  {formatElevationText(snapshot)}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -122,6 +141,12 @@ function LatestRiskSnapshotCard({ snapshot }) {
             value={snapshot.riverDischarge}
             unit=" m3/s"
             helperText={snapshot.riverDischarge == null ? 'Data unavailable' : 'Open-Meteo Flood API reading'}
+          />
+          <RiskMetricCard
+            label="Elevation"
+            value={snapshot.elevation}
+            unit=" m"
+            helperText={snapshot.elevation == null ? 'Elevation data unavailable' : 'Above sea level'}
           />
           <RiskMetricCard
             label="Flood Risk Index"

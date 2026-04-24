@@ -31,6 +31,7 @@ import EmptyStateCard from '../../features/riskData/components/EmptyStateCard'
 import MapModal from '../../features/riskData/components/MapModal'
 import WeatherDetailsModal from '../../features/riskData/components/WeatherDetailsModal'
 import ShareFeatures from '../../features/riskData/components/ShareFeatures'
+import RiskDataPageTabs from '../../features/riskData/components/RiskDataPageTabs'
 
 function getErrorMessage(error, fallback = 'Something went wrong.') {
   if (typeof error === 'string') return error
@@ -182,7 +183,7 @@ function SummaryStrip({ latestSnapshot, history, projectOverview, fetchLoading }
   ]
 
   return (
-    <div className={`overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br ${riskTone.panel} p-5 shadow-sm`}>
+    <div className={`overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br ${riskTone.panel} p-5 shadow-sm`}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
           <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -237,7 +238,7 @@ function SummaryStrip({ latestSnapshot, history, projectOverview, fetchLoading }
 function LoadingShell() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-10">
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-cyan-50 p-8 shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-linear-to-r from-slate-50 via-white to-cyan-50 p-8 shadow-sm">
         <div className="space-y-4">
           <div className="h-4 w-28 animate-pulse rounded-full bg-slate-200" />
           <div className="h-10 w-80 animate-pulse rounded-2xl bg-slate-200" />
@@ -433,7 +434,7 @@ function RiskDataPage() {
         <div className="absolute left-1/3 top-1/3 h-48 w-48 rounded-full bg-violet-100/35 blur-3xl" />
       </div>
 
-      <div className="overflow-hidden rounded-[2rem] border border-slate-700/60 bg-gradient-to-br from-[#0b1326] via-[#162033] to-[#22324a] px-6 py-7 text-white shadow-xl shadow-slate-900/20">
+      <div className="overflow-hidden rounded-4xl border border-slate-700/60 bg-linear-to-br from-[#0b1326] via-[#162033] to-[#22324a] px-6 py-7 text-white shadow-xl shadow-slate-900/20">
         <div className="absolute inset-0 opacity-20" aria-hidden />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl [&_h1]:text-white [&_p]:text-slate-200">
@@ -470,6 +471,8 @@ function RiskDataPage() {
         projectOverview={projectOverview}
         fetchLoading={fetchLoading}
       />
+
+      <RiskDataPageTabs projectId={projectId} current="risk-data" />
 
       <div className="grid gap-4 xl:grid-cols-[1fr,1.1fr]">
         <SurfaceCard className="p-1">
@@ -599,7 +602,7 @@ function RiskDataPage() {
         </>
       ) : (
         <SurfaceCard className="overflow-hidden p-0">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-cyan-50 px-5 py-4">
+          <div className="border-b border-slate-100 bg-linear-to-r from-slate-50 to-cyan-50 px-5 py-4">
             <p className="text-sm font-semibold text-slate-900">No snapshots yet</p>
             <p className="mt-1 text-xs text-slate-500">
               Start with a safe first fetch to populate the dashboard, timeline, and supporting tools.

@@ -80,7 +80,7 @@ function ProjectInfoCard({ projectId, onProjectLoaded = null }) {
 
   if (loading) {
     return (
-      <div className="mb-6 overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-sm">
+      <div className="mb-6 overflow-hidden rounded-3xl border border-amber-100 bg-linear-to-br from-amber-50 via-white to-orange-50 shadow-sm">
         <div className="h-1 w-full bg-linear-to-r from-amber-400 via-orange-400 to-rose-400"></div>
         <div className="grid gap-4 p-6 md:grid-cols-3">
           {[...Array(3)].map((_, idx) => (
@@ -144,13 +144,13 @@ function ProjectInfoCard({ projectId, onProjectLoaded = null }) {
   const projectInitial = String(projectDisplayName || 'P').trim().charAt(0).toUpperCase() || 'P'
 
   return (
-    <div className="mb-6 overflow-hidden rounded-3xl border border-amber-100/90 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-sm">
+    <div className="mb-6 overflow-hidden rounded-3xl border border-amber-100/90 bg-linear-to-br from-amber-50 via-white to-orange-50 shadow-sm">
       <div className="h-1 w-full bg-linear-to-r from-amber-400 via-orange-400 to-rose-400"></div>
 
       <div className="border-b border-amber-100 bg-linear-to-r from-amber-50/80 via-white to-orange-50/70 px-6 py-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-200 to-orange-200 text-sm font-bold text-orange-900 shadow-sm">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-amber-200 to-orange-200 text-sm font-bold text-orange-900 shadow-sm">
               {projectInitial}
             </div>
             <div className="min-w-0">

@@ -42,6 +42,12 @@ function DataSourceInfo({ snapshot = null, fetchErrorMessage = '' }) {
       ? 'Open-Meteo Flood API unavailable during snapshot fetch'
       : 'Open-Meteo Flood API'
 
+  const elevationProvider = !snapshot
+    ? 'No snapshot data yet'
+    : snapshot.elevationSourceStatus === 'failed'
+      ? 'Open-Elevation API unavailable during snapshot fetch'
+      : 'Open-Elevation API'
+
   const normalizedError = String(fetchErrorMessage || '').toLowerCase()
   const hasFetchIssue = Boolean(fetchErrorMessage)
   const fetchIssueText =
@@ -61,7 +67,7 @@ function DataSourceInfo({ snapshot = null, fetchErrorMessage = '' }) {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SourceCard
           icon={CloudSun}
           title="Weather Provider Used"
@@ -82,6 +88,13 @@ function DataSourceInfo({ snapshot = null, fetchErrorMessage = '' }) {
           description={floodProvider}
           helper="Flood data provided by Open-Meteo Flood API."
           iconClassName="bg-cyan-100 text-cyan-700"
+        />
+        <SourceCard
+          icon={Mountain}
+          title="Elevation Provider"
+          description={elevationProvider}
+          helper="Elevation data: Open-Elevation API."
+          iconClassName="bg-emerald-100 text-emerald-700"
         />
       </div>
 

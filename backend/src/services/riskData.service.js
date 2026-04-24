@@ -4,6 +4,8 @@ const { fetchOpenWeather } = require("./weather.service");
 
 // optional helper: simple flood index heuristic (0 - 100)
 // NOTE: This is NOT Component 3 scoring engine.
+// Supporting signals like river discharge/elevation are for context only,
+// not a replacement for the final assessment logic in Component 3.
 function computeFloodRiskIndex({ rainfall = 0, humidity = 0, cloudiness = 0, riverDischarge = null }) {
   const rainScore = Math.min(rainfall * 20, 100); // 5mm => 100
   const humidityScore = Math.min((humidity / 100) * 30, 30);
@@ -15,6 +17,25 @@ function computeFloodRiskIndex({ rainfall = 0, humidity = 0, cloudiness = 0, riv
 
   const total = rainScore * 0.55 + humidityScore + cloudScore + riverDischargeScore;
   return Math.round(Math.min(total, 100));
+}
+
+async function fetchElevation(lat, lng) {
+  const baseUrl =
+    process.env.OPEN_ELEVATION_BASE_URL || "https://api.open-elevation.com/api/v1/lookup";
+
+  const { data } = await axios.get(baseUrl, {
+    params: {
+      locations: `${lat},${lng}`,
+    },
+    timeout: 20000,
+  });
+
+  const elevationValue = Number(data?.results?.[0]?.elevation);
+
+  return {
+    elevation: Number.isFinite(elevationValue) ? Number(elevationValue.toFixed(2)) : null,
+    elevationSourceStatus: "ok",
+  };
 }
 
 function haversineDistanceKm(lat1, lng1, lat2, lng2) {
@@ -183,6 +204,17 @@ async function createSnapshot({ projectId, lat, lng, earthquakeWindowDays, earth
     floodSourceStatus = "failed";
   }
 
+  let elevation = null;
+  let elevationSourceStatus = "ok";
+  try {
+    const elevationData = await fetchElevation(lat, lng);
+    elevation = elevationData.elevation;
+    elevationSourceStatus = elevationData.elevationSourceStatus;
+  } catch (e) {
+    elevation = null;
+    elevationSourceStatus = "failed";
+  }
+
   const floodRiskIndex = computeFloodRiskIndex({
     rainfall: weather?.rainfall ?? 0,
     humidity: weather?.humidity ?? 0,
@@ -211,6 +243,8 @@ async function createSnapshot({ projectId, lat, lng, earthquakeWindowDays, earth
     riverDischarge,
     riverDischargeMean,
     floodSourceStatus,
+    elevation,
+    elevationSourceStatus,
     floodRiskIndex,
     fetchedAt: new Date(),
 
@@ -241,4 +275,5 @@ module.exports = {
 
   // optional export (useful for unit tests)
   computeFloodRiskIndex,
+  fetchElevation,
 };

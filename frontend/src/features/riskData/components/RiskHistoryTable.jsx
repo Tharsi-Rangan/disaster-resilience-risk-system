@@ -1,4 +1,4 @@
-import { Trash2, ChevronRight, ChevronDown } from 'lucide-react'
+import { Trash2, ChevronRight, ChevronDown, AlertTriangle, X } from 'lucide-react'
 import { useState } from 'react'
 
 function formatValue(value, suffix = '') {
@@ -16,6 +16,7 @@ function formatDate(dateValue) {
 
 function RiskHistoryTable({ history = [], onDelete = null, loading = false, defaultOpen = false }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const [pendingDeleteId, setPendingDeleteId] = useState(null)
 
   if (!history || history.length === 0) {
     return (
@@ -29,9 +30,18 @@ function RiskHistoryTable({ history = [], onDelete = null, loading = false, defa
 
   const handleDelete = (snapshotId) => {
     if (!onDelete) return
-    if (window.confirm('Are you sure you want to delete this snapshot? This action cannot be undone.')) {
-      onDelete(snapshotId)
-    }
+    setPendingDeleteId(snapshotId)
+  }
+
+  const closeDeleteModal = () => {
+    if (loading) return
+    setPendingDeleteId(null)
+  }
+
+  const confirmDelete = () => {
+    if (!onDelete || !pendingDeleteId) return
+    onDelete(pendingDeleteId)
+    setPendingDeleteId(null)
   }
 
   return (
@@ -129,6 +139,65 @@ function RiskHistoryTable({ history = [], onDelete = null, loading = false, defa
           </div>
         </div>
       )}
+
+      {pendingDeleteId ? (
+        <div className="fixed inset-0 z-70 flex items-center justify-center bg-slate-950/45 px-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-red-100 bg-white shadow-2xl shadow-slate-900/20">
+            <div className="bg-linear-to-r from-red-50 via-white to-rose-50 px-6 py-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="rounded-2xl bg-red-100 p-3">
+                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-500">Delete Snapshot</p>
+                    <h3 className="mt-1 text-xl font-bold text-slate-900">Remove this history record?</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      This snapshot will be permanently deleted from the archive. This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeDeleteModal}
+                  disabled={loading}
+                  className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Close delete dialog"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4 px-6 py-5">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Deleting a snapshot may affect trend comparisons, archive totals, and reporting history for this project.
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={closeDeleteModal}
+                  disabled={loading}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Keep Snapshot
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-red-600/20 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {loading ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
