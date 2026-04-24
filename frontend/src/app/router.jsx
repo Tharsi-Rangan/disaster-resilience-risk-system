@@ -11,6 +11,7 @@ import ProjectCreatePage from '../pages/projects/ProjectCreatePage'
 import ProjectDetailsPage from '../pages/projects/ProjectDetailsPage'
 import ProjectEditPage from '../pages/projects/ProjectEditPage'
 import RiskDataPage from '../pages/projects/RiskDataPage'
+import RiskSnapshotHistoryPage from '../pages/projects/RiskSnapshotHistoryPage'
 import AssessmentPage from '../pages/projects/AssessmentPage'
 import MitigationPage from '../pages/projects/MitigationPage'
 import RiskDataProjectsPage from '../pages/projects/RiskDataProjectsPage'
@@ -141,6 +142,15 @@ const router = createBrowserRouter([
             path: "projects/:id/risk-data",
             element: (
             <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR, USER_ROLES.ADMIN]}>                <RiskDataPage />
+              </RoleRoute>
+            ),
+          },
+
+          {
+            path: "projects/:id/risk-data/history",
+            element: (
+              <RoleRoute allowedRoles={[USER_ROLES.CONTRACTOR, USER_ROLES.ADMIN]}>
+                <RiskSnapshotHistoryPage />
               </RoleRoute>
             ),
           },

@@ -4,13 +4,33 @@ const { fetchOpenWeather } = require("./weather.service");
 
 // optional helper: simple flood index heuristic (0 - 100)
 // NOTE: This is NOT Component 3 scoring engine.
-function computeFloodRiskIndex({ rainfall = 0, humidity = 0, cloudiness = 0 }) {
+function computeFloodRiskIndex({ rainfall = 0, humidity = 0, cloudiness = 0, riverDischarge = null }) {
   const rainScore = Math.min(rainfall * 20, 100); // 5mm => 100
   const humidityScore = Math.min((humidity / 100) * 30, 30);
   const cloudScore = Math.min((cloudiness / 100) * 20, 20);
+  const riverDischargeScore =
+    riverDischarge == null
+      ? 0
+      : Math.min((Math.max(riverDischarge, 0) / 300) * 25, 25);
 
-  const total = rainScore * 0.6 + humidityScore + cloudScore;
+  const total = rainScore * 0.55 + humidityScore + cloudScore + riverDischargeScore;
   return Math.round(Math.min(total, 100));
+}
+
+function haversineDistanceKm(lat1, lng1, lat2, lng2) {
+  const toRadians = (deg) => (deg * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+
+  const dLat = toRadians(lat2 - lat1);
+  const dLng = toRadians(lng2 - lng1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
 }
 
 async function fetchEarthquakeCount({ lat, lng, windowDays = 30, radiusKm = 200, minMagnitude = 3 }) {
@@ -34,7 +54,64 @@ async function fetchEarthquakeCount({ lat, lng, windowDays = 30, radiusKm = 200,
     timeout: 20000, // increased timeout to reduce failures
   });
 
-  return data?.metadata?.count ?? (data?.features?.length ?? 0);
+  const features = Array.isArray(data?.features) ? data.features : [];
+  const count = data?.metadata?.count ?? features.length;
+
+  let maxMagnitude = null;
+  let nearestDistanceKm = null;
+
+  for (const feature of features) {
+    const magnitude = Number(feature?.properties?.mag);
+    if (Number.isFinite(magnitude)) {
+      maxMagnitude = maxMagnitude === null ? magnitude : Math.max(maxMagnitude, magnitude);
+    }
+
+    const coordinates = feature?.geometry?.coordinates;
+    if (Array.isArray(coordinates) && coordinates.length >= 2) {
+      const quakeLng = Number(coordinates[0]);
+      const quakeLat = Number(coordinates[1]);
+
+      if (Number.isFinite(quakeLat) && Number.isFinite(quakeLng)) {
+        const distance = haversineDistanceKm(lat, lng, quakeLat, quakeLng);
+        nearestDistanceKm = nearestDistanceKm === null ? distance : Math.min(nearestDistanceKm, distance);
+      }
+    }
+  }
+
+  return {
+    count,
+    maxMagnitude,
+    nearestDistanceKm,
+  };
+}
+
+async function fetchFloodHazardData({ lat, lng }) {
+  const url = process.env.OPEN_METEO_FLOOD_BASE_URL || "https://flood-api.open-meteo.com/v1/flood";
+  const { data } = await axios.get(url, {
+    params: {
+      latitude: lat,
+      longitude: lng,
+      daily: "river_discharge",
+    },
+    timeout: 20000,
+  });
+
+  const dischargeSeries = Array.isArray(data?.daily?.river_discharge) ? data.daily.river_discharge : [];
+  const validValues = dischargeSeries
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value));
+
+  const riverDischarge =
+    validValues.length > 0 ? Number(validValues[validValues.length - 1].toFixed(2)) : null;
+  const riverDischargeMean =
+    validValues.length > 0
+      ? Number((validValues.reduce((sum, value) => sum + value, 0) / validValues.length).toFixed(2))
+      : null;
+
+  return {
+    riverDischarge,
+    riverDischargeMean,
+  };
 }
 
 // prevent spamming fetch (cooldown)
@@ -70,22 +147,47 @@ async function createSnapshot({ projectId, lat, lng, earthquakeWindowDays, earth
 
   // Earthquake count with configurable parameters (fallback to 0 if USGS is down)
   let earthquakeCount = 0;
+  let maxEarthquakeMagnitude = null;
+  let nearestEarthquakeDistanceKm = null;
+  let earthquakeSourceStatus = "ok";
   try {
-    earthquakeCount = await fetchEarthquakeCount({ 
+    const earthquakeData = await fetchEarthquakeCount({ 
       lat, 
       lng,
       windowDays: earthquakeWindowDays,
       radiusKm: earthquakeRadiusKm,
       minMagnitude: minEarthquakeMagnitude,
     });
+    earthquakeCount = earthquakeData.count;
+    maxEarthquakeMagnitude =
+      earthquakeData.maxMagnitude === null ? null : Number(earthquakeData.maxMagnitude.toFixed(2));
+    nearestEarthquakeDistanceKm =
+      earthquakeData.nearestDistanceKm === null ? null : Number(earthquakeData.nearestDistanceKm.toFixed(2));
   } catch (e) {
     earthquakeCount = 0;
+    maxEarthquakeMagnitude = null;
+    nearestEarthquakeDistanceKm = null;
+    earthquakeSourceStatus = "failed";
+  }
+
+  let riverDischarge = null;
+  let riverDischargeMean = null;
+  let floodSourceStatus = "ok";
+  try {
+    const floodData = await fetchFloodHazardData({ lat, lng });
+    riverDischarge = floodData.riverDischarge;
+    riverDischargeMean = floodData.riverDischargeMean;
+  } catch (e) {
+    riverDischarge = null;
+    riverDischargeMean = null;
+    floodSourceStatus = "failed";
   }
 
   const floodRiskIndex = computeFloodRiskIndex({
     rainfall: weather?.rainfall ?? 0,
     humidity: weather?.humidity ?? 0,
     cloudiness: weather?.cloudiness ?? 0,
+    riverDischarge,
   });
 
   const snapshot = await RiskSnapshot.create({
@@ -100,12 +202,15 @@ async function createSnapshot({ projectId, lat, lng, earthquakeWindowDays, earth
     weatherCode: weather?.weatherCode ?? null, // WMO code
 
     earthquakeCount,
-    maxEarthquakeMagnitude: null, // Will be populated by earthquake service if needed
-    nearestEarthquakeDistanceKm: null, // Will be populated by earthquake service if needed
+    maxEarthquakeMagnitude,
+    nearestEarthquakeDistanceKm,
     earthquakeWindowDays: earthquakeWindowDays ?? 30,
     earthquakeRadiusKm: earthquakeRadiusKm ?? 200,
     minEarthquakeMagnitude: minEarthquakeMagnitude ?? 3,
-    
+    earthquakeSourceStatus,
+    riverDischarge,
+    riverDischargeMean,
+    floodSourceStatus,
     floodRiskIndex,
     fetchedAt: new Date(),
 

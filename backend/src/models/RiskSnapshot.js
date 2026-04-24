@@ -22,12 +22,16 @@ const RiskSnapshotSchema = new mongoose.Schema(
     earthquakeCount: { type: Number, default: 0 },
     maxEarthquakeMagnitude: { type: Number, default: null }, // Highest magnitude in timeframe
     nearestEarthquakeDistanceKm: { type: Number, default: null }, // Distance to nearest quake
+    earthquakeSourceStatus: { type: String, enum: ["ok", "failed"], default: "ok" },
     earthquakeWindowDays: { type: Number, default: 30 }, // Days to lookback for earthquakes
     earthquakeRadiusKm: { type: Number, default: 200 }, // Search radius in kilometers
     minEarthquakeMagnitude: { type: Number, default: 3 }, // Minimum magnitude threshold
 
     // Simple index (NOT assessment score)
     floodRiskIndex: { type: Number, default: 0 }, // 0 - 100
+    riverDischarge: { type: Number, default: null }, // m3/s from flood API
+    riverDischargeMean: { type: Number, default: null }, // Average of returned discharge values
+    floodSourceStatus: { type: String, enum: ["ok", "failed"], default: "ok" },
 
     fetchedAt: {
       type: Date,
@@ -45,5 +49,6 @@ const RiskSnapshotSchema = new mongoose.Schema(
 
 // For latest snapshot queries + history
 RiskSnapshotSchema.index({ projectId: 1, createdAt: -1 });
+RiskSnapshotSchema.index({ projectId: 1, fetchedAt: -1 });
 
 module.exports = mongoose.model("RiskSnapshot", RiskSnapshotSchema);

@@ -14,8 +14,8 @@ function formatDate(dateValue) {
   return new Date(dateValue).toLocaleString()
 }
 
-function RiskHistoryTable({ history = [], onDelete = null, loading = false }) {
-  const [isOpen, setIsOpen] = useState(false)
+function RiskHistoryTable({ history = [], onDelete = null, loading = false, defaultOpen = false }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
 
   if (!history || history.length === 0) {
     return (
