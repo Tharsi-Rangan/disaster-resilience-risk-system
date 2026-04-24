@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Activity, ArrowLeft, Database, History, Share2 } from 'lucide-react'
+import { Activity, AlertCircle, ArrowLeft, CheckCircle2, Clock3, Database, History, Info, Share2, X } from 'lucide-react'
 import PageHeader from '../../components/common/PageHeader'
 import { riskDataService } from '../../services/riskDataService'
 import useAuth from '../../hooks/useAuth'
@@ -33,6 +33,47 @@ function SurfaceCard({ children, className = '' }) {
   return (
     <div className={`rounded-3xl border border-slate-200/80 bg-white/92 shadow-sm backdrop-blur ${className}`}>
       {children}
+    </div>
+  )
+}
+
+function Toast({ toast, onClose }) {
+  const stylesByType = {
+    success: {
+      wrapper: 'border-emerald-200/90 bg-emerald-50/95 text-emerald-900',
+      icon: <CheckCircle2 className="h-5 w-5 text-emerald-600" />,
+    },
+    warning: {
+      wrapper: 'border-amber-200/90 bg-amber-50/95 text-amber-900',
+      icon: <Clock3 className="h-5 w-5 text-amber-600" />,
+    },
+    error: {
+      wrapper: 'border-red-200/90 bg-red-50/95 text-red-900',
+      icon: <AlertCircle className="h-5 w-5 text-red-600" />,
+    },
+    info: {
+      wrapper: 'border-blue-200/90 bg-blue-50/95 text-blue-900',
+      icon: <Info className="h-5 w-5 text-blue-600" />,
+    },
+  }
+
+  const typeStyle = stylesByType[toast.type] || stylesByType.info
+
+  return (
+    <div className={`pointer-events-auto flex gap-3 rounded-2xl border px-4 py-3 shadow-lg shadow-slate-900/5 backdrop-blur ${typeStyle.wrapper}`}>
+      <div className="shrink-0">{typeStyle.icon}</div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">{toast.title}</p>
+        {toast.message && <p className="mt-0.5 text-xs opacity-90">{toast.message}</p>}
+      </div>
+      <button
+        type="button"
+        onClick={() => onClose(toast.id)}
+        className="shrink-0 rounded-md p-1 text-slate-500 transition hover:bg-white/60 hover:text-slate-700"
+        aria-label="Dismiss notification"
+      >
+        <X className="h-4 w-4" />
+      </button>
     </div>
   )
 }
@@ -77,9 +118,41 @@ function RiskSnapshotHistoryPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [projectOverview, setProjectOverview] = useState(null)
   const [pageError, setPageError] = useState('')
+  const [toasts, setToasts] = useState([])
+  const toastTimersRef = useRef({})
 
   const userRole = normalizeRole(user?.role)
   const canDeleteSnapshots = userRole === USER_ROLES.ADMIN
+
+  const removeToast = useCallback((toastId) => {
+    const timeoutId = toastTimersRef.current[toastId]
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      delete toastTimersRef.current[toastId]
+    }
+    setToasts((current) => current.filter((toast) => toast.id !== toastId))
+  }, [])
+
+  const pushToast = useCallback((type, title, message = '') => {
+    const toastId = `${Date.now()}-${Math.random().toString(16).slice(2)}`
+    const nextToast = { id: toastId, type, title, message }
+
+    setToasts((current) => [...current, nextToast].slice(-4))
+
+    const timeoutId = setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== toastId))
+      delete toastTimersRef.current[toastId]
+    }, 5000)
+
+    toastTimersRef.current[toastId] = timeoutId
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      Object.values(toastTimersRef.current).forEach((timeoutId) => clearTimeout(timeoutId))
+      toastTimersRef.current = {}
+    }
+  }, [])
 
   const loadHistory = useCallback(async () => {
     try {
@@ -96,11 +169,23 @@ function RiskSnapshotHistoryPage() {
 
       if (latestResult.status === 'rejected' && historyResult.status === 'rejected') {
         setPageError(getErrorMessage(latestResult.reason, 'Unable to load snapshot history.'))
+      } else if (latestResult.status === 'rejected') {
+        pushToast(
+          'warning',
+          'Latest snapshot unavailable',
+          getErrorMessage(latestResult.reason, 'Archive loaded, but the latest snapshot could not be retrieved.')
+        )
+      } else if (historyResult.status === 'rejected') {
+        pushToast(
+          'warning',
+          'History unavailable',
+          getErrorMessage(historyResult.reason, 'Latest snapshot loaded, but snapshot history could not be retrieved.')
+        )
       }
     } finally {
       setLoading(false)
     }
-  }, [projectId])
+  }, [projectId, pushToast])
 
   useEffect(() => {
     if (!projectId) return
@@ -114,6 +199,7 @@ function RiskSnapshotHistoryPage() {
       setDeleteLoading(true)
       await riskDataService.deleteRiskSnapshot(snapshotId)
       await loadHistory()
+      pushToast('success', 'Snapshot deleted', 'The selected snapshot was removed from the archive.')
     } catch (error) {
       setPageError(getErrorMessage(error, 'Failed to delete snapshot.'))
     } finally {
@@ -176,6 +262,12 @@ function RiskSnapshotHistoryPage() {
         <SurfaceCard className="p-1">
           <ProjectInfoCard projectId={projectId} onProjectLoaded={handleProjectLoaded} />
         </SurfaceCard>
+      </div>
+
+      <div className="pointer-events-none fixed right-4 top-20 z-50 flex w-full max-w-sm flex-col gap-2">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} onClose={removeToast} />
+        ))}
       </div>
 
       <RiskDataPageTabs projectId={projectId} current="history" />

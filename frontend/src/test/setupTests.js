@@ -1,1 +1,1 @@
-import '@testing-library/jest-dom/vitest'
+// Shared frontend test setup placeholder for Vitest.

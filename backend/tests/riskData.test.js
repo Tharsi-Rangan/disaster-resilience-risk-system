@@ -21,6 +21,8 @@ describe("Risk Data API Tests", () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    await User.deleteMany({});
+    await Project.deleteMany({});
 
     const contractor = await User.create({
       name: "Contractor",

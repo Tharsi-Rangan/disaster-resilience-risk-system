@@ -333,6 +333,18 @@ function RiskDataPage() {
 
       if (latestResult.status === 'rejected' && historyResult.status === 'rejected') {
         pushToast('error', 'Unable to load risk data', getErrorMessage(latestResult.reason, 'Failed to load risk data.'))
+      } else if (latestResult.status === 'rejected') {
+        pushToast(
+          'warning',
+          'Latest snapshot unavailable',
+          getErrorMessage(latestResult.reason, 'History loaded, but the latest snapshot could not be retrieved.')
+        )
+      } else if (historyResult.status === 'rejected') {
+        pushToast(
+          'warning',
+          'History unavailable',
+          getErrorMessage(historyResult.reason, 'Latest snapshot loaded, but snapshot history could not be retrieved.')
+        )
       }
     } finally {
       setPageLoading(false)

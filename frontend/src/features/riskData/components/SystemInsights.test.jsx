@@ -18,24 +18,24 @@ describe('SystemInsights', () => {
       />
     )
 
-    expect(screen.getByText(/system insights/i)).toBeInTheDocument()
+    expect(screen.getByText(/system insights/i)).toBeTruthy()
     expect(
       screen.getByText(/high humidity detected\. potential for moisture-related damage and mold growth\./i)
-    ).toBeInTheDocument()
-    expect(screen.getByText(/heavy cloud cover\. increased chance of precipitation\./i)).toBeInTheDocument()
+    ).toBeTruthy()
+    expect(screen.getByText(/heavy cloud cover\. increased chance of precipitation\./i)).toBeTruthy()
     expect(
       screen.getByText(/seismic data may be unavailable or no events detected\./i)
-    ).toBeInTheDocument()
+    ).toBeTruthy()
     expect(
       screen.getByText(/high flood risk\. activate emergency protocols if applicable\./i)
-    ).toBeInTheDocument()
+    ).toBeTruthy()
     expect(
       screen.getByText(/high temperature detected\. risk of heat damage to sensitive equipment\./i)
-    ).toBeInTheDocument()
+    ).toBeTruthy()
   })
 
   it('renders nothing when no snapshot is provided', () => {
     const { container } = render(<SystemInsights snapshot={null} />)
-    expect(container).toBeEmptyDOMElement()
+    expect(container.innerHTML).toBe('')
   })
 })

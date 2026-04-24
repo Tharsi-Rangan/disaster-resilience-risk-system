@@ -15,6 +15,19 @@ jest.setTimeout(30000); // 30 seconds
 let userToken, adminToken;
 let userId, adminId;
 
+function assertSafeConnectedTestDb() {
+  const connectionName = String(mongoose.connection?.name || "");
+  const connectionHost = String(mongoose.connection?.host || "");
+
+  if (connectionHost.includes("mongodb.net")) {
+    throw new Error(`Refusing test cleanup on Atlas host: ${connectionHost}`);
+  }
+
+  if (!connectionName.toLowerCase().includes("test")) {
+    throw new Error(`Refusing test cleanup on non-test database: ${connectionName}`);
+  }
+}
+
 // Connect to MongoDB before running tests
 beforeAll(async () => {
   if (!process.env.MONGO_URI) {
@@ -26,6 +39,7 @@ beforeAll(async () => {
     useUnifiedTopology: true,
   });
   console.log("Connected to MongoDB for tests");
+  assertSafeConnectedTestDb();
 
   // Clear users/projects before tests
   await User.deleteMany({});
@@ -39,7 +53,7 @@ beforeAll(async () => {
     role: "CONTRACTOR", // use actual enum role from User model
   });
   userId = user._id;
-  userToken = jwt.sign({ _id: userId, role: "CONTRACTOR" }, process.env.JWT_SECRET);
+  userToken = jwt.sign({ userId, role: "CONTRACTOR" }, process.env.JWT_SECRET);
 
   // Create admin user
   const admin = await User.create({
@@ -49,7 +63,7 @@ beforeAll(async () => {
     role: "ADMIN",
   });
   adminId = admin._id;
-  adminToken = jwt.sign({ _id: adminId, role: "ADMIN" }, process.env.JWT_SECRET);
+  adminToken = jwt.sign({ userId: adminId, role: "ADMIN" }, process.env.JWT_SECRET);
 });
 
 // Disconnect after all tests
@@ -62,7 +76,7 @@ describe("Project API Tests", () => {
   test("Create project successfully", async () => {
     const res = await request(app)
       .post("/api/projects")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({
         title: "Kelani Bridge",
         projectType: "bridge",
@@ -77,7 +91,7 @@ describe("Project API Tests", () => {
   test("Fail without location", async () => {
     const res = await request(app)
       .post("/api/projects")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({
         title: "Invalid Project",
         projectType: "road"
@@ -89,7 +103,7 @@ describe("Project API Tests", () => {
   test("Get all projects", async () => {
     const res = await request(app)
       .get("/api/projects")
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${userToken}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.projects).toBeDefined();
@@ -105,7 +119,7 @@ describe("Project API Tests", () => {
 
     const res = await request(app)
       .put(`/api/projects/${project._id}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ title: "Updated Road Project" });
 
     expect(res.statusCode).toBe(200);
@@ -138,7 +152,7 @@ describe("Project API Tests", () => {
 
     const res = await request(app)
       .delete(`/api/projects/${project._id}`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${userToken}`);
 
     expect(res.statusCode).toBe(200);
   });

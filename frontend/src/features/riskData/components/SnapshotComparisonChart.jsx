@@ -52,13 +52,24 @@ const METRIC_OPTIONS = [
   },
 ]
 
-function formatDateLabel(value) {
+function formatAxisTimeLabel(value) {
+  if (!value) return 'N/A'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'N/A'
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+function formatTooltipDateLabel(value) {
   if (!value) return 'N/A'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'N/A'
   return date.toLocaleString('en-US', {
+    day: '2-digit',
     month: 'short',
-    day: 'numeric',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   })
@@ -81,10 +92,11 @@ function SnapshotComparisonChart({ history = [] }) {
   const chartData = useMemo(() => {
     const selectedMetric = METRIC_OPTIONS.find((option) => option.key === selectedMetricKey) || METRIC_OPTIONS[0]
     const points = history
-      .slice(0, 12)
+      .slice(0, 20)
       .reverse()
       .map((item) => ({
-        label: formatDateLabel(item?.fetchedAt),
+        label: formatAxisTimeLabel(item?.fetchedAt),
+        fullLabel: formatTooltipDateLabel(item?.fetchedAt),
         metricValue: Number(item?.[selectedMetric.key]),
         floodRiskValue: Number(item?.floodRiskIndex),
       }))
@@ -135,6 +147,7 @@ function SnapshotComparisonChart({ history = [] }) {
   const metricPath = metricPoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
   const floodPath = floodPoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
   const metricAreaPath = `${metricPath} L ${metricPoints[metricPoints.length - 1].x} ${svgHeight - paddingY} L ${metricPoints[0].x} ${svgHeight - paddingY} Z`
+  const labelInterval = points.length <= 6 ? 1 : points.length <= 15 ? 2 : points.length <= 30 ? 4 : 6
 
   const latestValue = validMetricValues[validMetricValues.length - 1]
   const previousValue = validMetricValues[validMetricValues.length - 2] ?? latestValue
@@ -144,11 +157,11 @@ function SnapshotComparisonChart({ history = [] }) {
   const SelectedMetricIcon = selectedMetric.icon
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-linear-to-br from-white via-white to-slate-50 p-5 shadow-sm shadow-slate-900/5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <div className="rounded-xl bg-slate-100 p-2">
+            <div className="rounded-xl bg-linear-to-br from-violet-100 to-white p-2 shadow-sm ring-1 ring-violet-100">
               <Activity className="h-4 w-4 text-violet-700" />
             </div>
             <div>
@@ -157,18 +170,23 @@ function SnapshotComparisonChart({ history = [] }) {
             </div>
           </div>
           <p className="max-w-2xl text-sm leading-6 text-slate-600">{selectedMetric.helper}</p>
+          {history.length > 20 ? (
+            <p className="mt-2 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
+              Showing latest 20 snapshots for readability.
+            </p>
+          ) : null}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
             <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Latest</p>
             <p className="mt-1 text-sm font-semibold text-slate-900">{formatMetricValue(latestValue, selectedMetric.unit)}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
             <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Average</p>
             <p className="mt-1 text-sm font-semibold text-slate-900">{formatMetricValue(averageValue, selectedMetric.unit)}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
             <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Direction</p>
             <p className={`mt-1 text-sm font-semibold ${delta > 0 ? 'text-red-600' : delta < 0 ? 'text-emerald-600' : 'text-slate-700'}`}>
               {getStatusLabel(delta)}
@@ -189,8 +207,8 @@ function SnapshotComparisonChart({ history = [] }) {
               onClick={() => setSelectedMetricKey(option.key)}
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
                 isActive
-                  ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
-                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                  ? 'border-slate-900 bg-slate-900 text-white shadow-sm shadow-slate-900/15'
+                  : 'border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm'
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -201,10 +219,10 @@ function SnapshotComparisonChart({ history = [] }) {
       </div>
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[1.6fr,0.7fr]">
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-slate-50 to-white p-4">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-slate-50 via-white to-slate-50 p-4 shadow-inner shadow-slate-100/40">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="rounded-xl bg-white p-2 shadow-sm">
+              <div className="rounded-xl bg-white p-2 shadow-sm ring-1 ring-slate-100 transition duration-300 hover:scale-105">
                 <SelectedMetricIcon className="h-4 w-4" style={{ color: selectedMetric.color }} />
               </div>
               <div>
@@ -212,15 +230,17 @@ function SnapshotComparisonChart({ history = [] }) {
                 <p className="text-xs text-slate-500">Solid line compares selected metric. Dashed line keeps flood risk visible as context.</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-xs text-slate-500">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 shadow-sm">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: selectedMetric.color }} />
                 {selectedMetric.label}
               </div>
-              <div className="flex items-center gap-2">
-                <span className="h-0.5 w-6 bg-emerald-500" style={{ borderTop: '2px dashed #10b981', backgroundColor: 'transparent' }} />
-                Flood Risk
-              </div>
+              {selectedMetric.key !== 'floodRiskIndex' ? (
+                <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 shadow-sm">
+                  <span className="h-0.5 w-6 bg-emerald-500" style={{ borderTop: '2px dashed #10b981', backgroundColor: 'transparent' }} />
+                  Flood Risk
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -263,34 +283,45 @@ function SnapshotComparisonChart({ history = [] }) {
             />
 
             {metricPoints.map((point, index) => (
-              <circle
-                key={`metric-${index}`}
-                cx={point.x}
-                cy={point.y}
-                r="4"
-                fill={selectedMetric.color}
-                stroke="#ffffff"
-                strokeWidth="2"
-              />
+              <g key={`metric-${index}`}>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="4"
+                  fill={selectedMetric.color}
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                />
+                {index === metricPoints.length - 1 ? (
+                  <circle cx={point.x} cy={point.y} r="8" fill={selectedMetric.color} opacity="0.14">
+                    <animate attributeName="r" values="7;10;7" dur="2.4s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.18;0.05;0.18" dur="2.4s" repeatCount="indefinite" />
+                  </circle>
+                ) : null}
+                <title>{points[index].fullLabel}</title>
+              </g>
             ))}
 
             {points.map((point, index) => (
-              <text
-                key={`label-${index}`}
-                x={metricPoints[index].x}
-                y={svgHeight - 6}
-                textAnchor="middle"
-                fontSize="11"
-                fill="#94a3b8"
-              >
-                {point.label}
-              </text>
+              index % labelInterval === 0 || index === points.length - 1 ? (
+                <text
+                  key={`label-${index}`}
+                  x={metricPoints[index].x}
+                  y={svgHeight - 6}
+                  textAnchor="middle"
+                  fontSize="11"
+                  fill="#94a3b8"
+                  transform={`rotate(-25 ${metricPoints[index].x} ${svgHeight - 6})`}
+                >
+                  {point.label}
+                </text>
+              ) : null
             ))}
           </svg>
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-3xl border border-slate-200 bg-linear-to-br from-white to-slate-50 p-4">
+          <div className="rounded-3xl border border-slate-200 bg-linear-to-br from-white to-slate-50 p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Creative Insight</p>
             <p className="mt-3 text-sm leading-6 text-slate-700">
               Use this view to spot whether <span className="font-semibold text-slate-900">{selectedMetric.label.toLowerCase()}</span> is
@@ -299,7 +330,7 @@ function SnapshotComparisonChart({ history = [] }) {
             </p>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-linear-to-br from-violet-50 to-white p-4">
+          <div className="rounded-3xl border border-slate-200 bg-linear-to-br from-violet-50 to-white p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-700">Snapshot Window</p>
             <p className="mt-2 text-sm font-semibold text-slate-900">{points.length} recent snapshots</p>
             <p className="mt-1 text-xs leading-5 text-slate-600">
