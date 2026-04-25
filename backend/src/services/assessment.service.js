@@ -16,7 +16,7 @@ async function findLatestSnapshot(projectId) {
   return RiskSnapshot.findOne({ projectId }).sort({ createdAt: -1 });
 }
 
-// keep available, but disabled for now if another component owns project status
+// Keep available, but disabled for now if another component owns project status
 async function updateProjectStatus(projectId, riskLevel) {
   await Project.findByIdAndUpdate(projectId, { status: riskLevel });
 }
@@ -24,14 +24,7 @@ async function updateProjectStatus(projectId, riskLevel) {
 exports.runForProject = async (projectId) => {
   console.log("RUN assessment for projectId:", projectId);
 
-  const allSnapshots = await RiskSnapshot.find().limit(5);
-  console.log(
-    "Sample snapshot projectIds:",
-    allSnapshots.map((s) => String(s.projectId))
-  );
-
   const snapshot = await findLatestSnapshot(projectId);
-  console.log("Found snapshot:", snapshot);
 
   if (!snapshot) {
     const err = new Error("Latest RiskSnapshot not found for project");
@@ -40,7 +33,6 @@ exports.runForProject = async (projectId) => {
   }
 
   const project = await Project.findById(projectId).select("location");
-  console.log("Found project:", project);
 
   if (!project) {
     const err = new Error("Project not found");
@@ -56,7 +48,10 @@ exports.runForProject = async (projectId) => {
     typeof lng === "number" &&
     !(lat === 0 && lng === 0);
 
-  const elevation = hasCoords ? await getElevation(lat, lng) : null;
+  const elevation =
+    hasCoords && snapshot.elevation == null
+      ? await getElevation(lat, lng)
+      : snapshot.elevation ?? null;
 
   const weatherScore = calcWeatherScore(snapshot);
   const earthquakeScore = calcEarthquakeScore(snapshot);
@@ -77,8 +72,10 @@ exports.runForProject = async (projectId) => {
     riskScore,
     riskLevel,
     weatherScore,
-    floodScore,
     earthquakeScore,
+    floodBase,
+    floodScore,
+    elevation,
     modelVersion: "v1",
   });
 
@@ -86,17 +83,21 @@ exports.runForProject = async (projectId) => {
     created,
     usedSnapshot: snapshot._id,
     elevation,
+    floodBase,
   };
 };
 
 exports.getLatest = async (projectId) => {
-  return RiskAssessment.findOne({ projectId }).sort({ createdAt: -1 });
+  return RiskAssessment.findOne({ projectId })
+    .sort({ createdAt: -1 })
+    .populate("snapshotId");
 };
 
 exports.getHistory = async (projectId, limit = 50) => {
   return RiskAssessment.find({ projectId })
     .sort({ createdAt: -1 })
-    .limit(limit);
+    .limit(limit)
+    .populate("snapshotId");
 };
 
 exports.deleteOne = async (id) => {
