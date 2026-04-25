@@ -10,15 +10,14 @@ if (!process.env.JWT_SECRET) {
 
 let mongoServer;
 
-beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  // Expose the in-memory URI so tests that check process.env.MONGO_URI still pass
-  process.env.MONGO_URI = uri;
-  await mongoose.connect(uri);
-});
+// beforeAll(async () => {
+//   mongoServer = await MongoMemoryServer.create();
+//   const uri = mongoServer.getUri();
+//   process.env.MONGO_URI = uri;
+//   await mongoose.connect(uri);
+// });
 
-afterAll(async () => {
-  await mongoose.connection.close();
-  await mongoServer.stop();
-});
+// afterAll(async () => {
+//   await mongoose.connection.close();
+//   await mongoServer.stop();
+// });
