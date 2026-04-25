@@ -6,7 +6,7 @@ function PageHeader({ title, description, children }) {
         {description && <p className="mt-2 text-slate-500 font-medium text-base">{description}</p>}
       </div>
       {children && (
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           {children}
         </div>
       )}

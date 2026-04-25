@@ -1,6 +1,18 @@
 import { Download, Share2, MessageCircle } from 'lucide-react'
+import useAuth from '../../../hooks/useAuth'
+import { exportRiskReportCsv } from '../utils/exportRiskReport'
 
-function ShareFeatures({ snapshot, history, projectName, projectOverview, onFeedback }) {
+function ShareFeatures({
+  snapshot,
+  history,
+  projectName,
+  projectId = '',
+  projectOverview,
+  onFeedback,
+  showExport = true,
+}) {
+  const { user } = useAuth()
+
   const getProjectOverview = () => {
     const location = projectOverview?.location || projectOverview?.coordinates || {}
     const latitude =
@@ -38,103 +50,22 @@ function ShareFeatures({ snapshot, history, projectName, projectOverview, onFeed
     }
   }
 
-  const formatCell = (cell) => {
-    const str = String(cell)
-    return str.includes(',') || str.includes('"') || str.includes('\n')
-      ? `"${str.replace(/"/g, '""')}"`
-      : str
-  }
-
   const handleExportCSV = () => {
     try {
-      const exportedAt = new Date().toLocaleString()
-      const overview = getProjectOverview()
-
-      const headers = [
-        'Fetched At',
-        'Source',
-        'Rainfall (mm)',
-        'Temperature (°C)',
-        'Wind Speed (m/s)',
-        'Humidity (%)',
-        'Cloudiness (%)',
-        'Pressure (hPa)',
-        'Visibility (m)',
-        'Weather Code',
-        'Earthquake Count',
-        'Max Earthquake Magnitude',
-        'Nearest Earthquake Distance (km)',
-        'Flood Risk Index'
-      ]
-
-      const latestHazardRows = [
-        ['Latest Snapshot Fetched At', snapshot?.fetchedAt ? new Date(snapshot.fetchedAt).toLocaleString() : 'N/A'],
-        ['Latest Snapshot Source', snapshot?.source || 'N/A'],
-        ['Flood Risk Index', snapshot?.floodRiskIndex ?? 'N/A'],
-        ['Earthquake Count', snapshot?.earthquakeCount ?? 'N/A'],
-        ['Max Earthquake Magnitude', snapshot?.maxEarthquakeMagnitude ?? 'N/A'],
-        ['Nearest Earthquake Distance (km)', snapshot?.nearestEarthquakeDistanceKm ?? 'N/A'],
-        ['Temperature (°C)', snapshot?.temperature ?? 'N/A'],
-        ['Humidity (%)', snapshot?.humidity ?? 'N/A'],
-        ['Wind Speed (m/s)', snapshot?.windSpeed ?? 'N/A'],
-        ['Rainfall (mm)', snapshot?.rainfall ?? 'N/A'],
-      ]
-
-      const rows = (history || []).map((item) => [
-        new Date(item.fetchedAt).toLocaleString(),
-        item.source || 'N/A',
-        item.rainfall ?? 'N/A',
-        item.temperature ?? 'N/A',
-        item.windSpeed ?? 'N/A',
-        item.humidity ?? 'N/A',
-        item.cloudiness ?? 'N/A',
-        item.pressure ?? 'N/A',
-        item.visibility ?? 'N/A',
-        item.weatherCode ?? 'N/A',
-        item.earthquakeCount ?? 'N/A',
-        item.maxEarthquakeMagnitude ?? 'N/A',
-        item.nearestEarthquakeDistanceKm ?? 'N/A',
-        item.floodRiskIndex ?? 'N/A'
-      ])
-
-      const csvRows = [
-        ['Section', 'Value'],
-        ['Report Type', 'Disaster Risk Data Export'],
-        ['Exported At', exportedAt],
-        ['Project Name', overview.name],
-        ['Project Type', overview.type],
-        ['Project Status', overview.status],
-        ['Project Location', overview.location],
-        ['Project Created', overview.created],
-        [],
-        ['Latest Hazard Snapshot', ''],
-        ...latestHazardRows,
-        [],
-        ['Snapshot History', ''],
-        headers,
-        ...rows,
-      ]
-
-      const csvContent = [
-        ...csvRows.map((row) => (Array.isArray(row) ? row.map(formatCell).join(',') : ''))
-      ].join('\n')
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      const url = URL.createObjectURL(blob)
-      const timestamp = new Date().toISOString().split('T')[0]
-      link.setAttribute('href', url)
-      link.setAttribute('download', `risk-history-${timestamp}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      exportRiskReportCsv({
+        history,
+        latestSnapshot: snapshot,
+        projectName,
+        projectId,
+        projectOverview,
+        user,
+      })
       onFeedback?.({
         type: 'success',
         title: 'Export complete',
-        message: 'Project overview, export date, and hazard data were exported successfully.',
+        message: 'Professional risk report exported successfully.',
       })
-    } catch (error) {
+    } catch {
       onFeedback?.({
         type: 'error',
         title: 'Export failed',
@@ -152,7 +83,7 @@ function ShareFeatures({ snapshot, history, projectName, projectOverview, onFeed
         title: 'Summary copied',
         message: 'Risk summary copied to clipboard.',
       })
-    } catch (error) {
+    } catch {
       onFeedback?.({
         type: 'error',
         title: 'Copy failed',
@@ -187,23 +118,23 @@ function ShareFeatures({ snapshot, history, projectName, projectOverview, onFeed
     const exportedAt = new Date().toLocaleString()
 
     return (
-      `📊 Disaster Risk Summary\n\n` +
+      `Disaster Risk Summary\n\n` +
       `Project Overview\n` +
-      `• Name: ${overview.name}\n` +
-      `• Type: ${overview.type}\n` +
-      `• Status: ${overview.status}\n` +
-      `• Location: ${overview.location}\n` +
-      `• Created: ${overview.created}\n\n` +
+      `- Name: ${overview.name}\n` +
+      `- Type: ${overview.type}\n` +
+      `- Status: ${overview.status}\n` +
+      `- Location: ${overview.location}\n` +
+      `- Created: ${overview.created}\n\n` +
       `Exported Date: ${exportedAt}\n\n` +
       `Hazard Data\n` +
-      `• Flood Risk Index: ${snapshot.floodRiskIndex?.toFixed(0) || 'N/A'}\n` +
-      `• Temperature: ${snapshot.temperature?.toFixed(1) || 'N/A'}°C\n` +
-      `• Humidity: ${snapshot.humidity?.toFixed(0) || 'N/A'}%\n` +
-      `• Wind Speed: ${snapshot.windSpeed?.toFixed(1) || 'N/A'} m/s\n` +
-      `• Rainfall: ${snapshot.rainfall?.toFixed(1) || 'N/A'} mm\n` +
-      `• Earthquakes: ${snapshot.earthquakeCount || 0} event(s)\n` +
-      `• Max Earthquake Magnitude: ${snapshot.maxEarthquakeMagnitude ?? 'N/A'}\n` +
-      `• Nearest Earthquake Distance: ${snapshot.nearestEarthquakeDistanceKm ?? 'N/A'} km\n` +
+      `- Flood Risk Index: ${snapshot.floodRiskIndex?.toFixed(0) || 'N/A'}\n` +
+      `- Temperature: ${snapshot.temperature?.toFixed(1) || 'N/A'} deg C\n` +
+      `- Humidity: ${snapshot.humidity?.toFixed(0) || 'N/A'}%\n` +
+      `- Wind Speed: ${snapshot.windSpeed?.toFixed(1) || 'N/A'} m/s\n` +
+      `- Rainfall: ${snapshot.rainfall?.toFixed(1) || 'N/A'} mm\n` +
+      `- Earthquakes: ${snapshot.earthquakeCount || 0} event(s)\n` +
+      `- Max Earthquake Magnitude: ${snapshot.maxEarthquakeMagnitude ?? 'N/A'}\n` +
+      `- Nearest Earthquake Distance: ${snapshot.nearestEarthquakeDistanceKm ?? 'N/A'} km\n` +
       `\nSource: ${snapshot.source || 'Unknown'}\n` +
       `Snapshot Fetched: ${new Date(snapshot.fetchedAt).toLocaleString()}\n\n` +
       `Generated from ResiluGuard - Disaster Resilience Risk System`
@@ -212,15 +143,17 @@ function ShareFeatures({ snapshot, history, projectName, projectOverview, onFeed
 
   return (
     <div className="mb-6 flex flex-wrap gap-2">
-      <button
-        onClick={handleExportCSV}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:border-slate-400"
-        title="Download risk data as CSV"
-      >
-        <Download className="h-4 w-4" />
-        <span className="hidden sm:inline">Export CSV</span>
-        <span className="sm:hidden">Export</span>
-      </button>
+      {showExport && (
+        <button
+          onClick={handleExportCSV}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:border-slate-400"
+          title="Download risk data as CSV"
+        >
+          <Download className="h-4 w-4" />
+          <span className="hidden sm:inline">Export CSV</span>
+          <span className="sm:hidden">Export</span>
+        </button>
+      )}
 
       <button
         onClick={handleCopyText}

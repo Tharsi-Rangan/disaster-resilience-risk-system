@@ -56,6 +56,9 @@ const fetchRiskData = async (req, res) => {
 
 const getLatest = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
     const { projectId } = req.params;
     const snapshot = await riskDataService.getLatestSnapshot(projectId);
     if (!snapshot) return res.status(404).json({ message: "No snapshots found" });
@@ -68,6 +71,9 @@ const getLatest = async (req, res) => {
 
 const getHistory = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
     const { projectId } = req.params;
     const history = await riskDataService.getSnapshotHistory(projectId);
     return res.json({ count: history.length, history });
@@ -78,6 +84,9 @@ const getHistory = async (req, res) => {
 
 const removeSnapshot = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
     const { snapshotId } = req.params;
     const deleted = await riskDataService.deleteSnapshot(snapshotId);
     if (!deleted) return res.status(404).json({ message: "Snapshot not found" });

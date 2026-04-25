@@ -13,51 +13,47 @@ describe('WeatherDetailsModal', () => {
     windSpeed: 2.24,
     rainfall: 0,
     weatherCode: 803,
+    elevation: 12.5,
     source: 'OpenWeather/USGS',
     fetchedAt: '2026-04-11T16:19:57.000Z',
   }
 
-  it('opens and shows map unavailable message when coordinates are missing', async () => {
+  it('opens and shows weather snapshot details', async () => {
     const user = userEvent.setup()
 
-    render(
-      <WeatherDetailsModal
-        snapshot={baseSnapshot}
-        projectLocation={null}
-        projectName="Test Project"
-      />
-    )
+    render(<WeatherDetailsModal snapshot={baseSnapshot} />)
 
-    await user.click(screen.getByRole('button', { name: /view location \+ weather map/i }))
+    await user.click(screen.getByRole('button', { name: /view weather details/i }))
 
-    expect(screen.getByText(/location and weather intelligence/i)).toBeInTheDocument()
-    expect(screen.getAllByText(/selected project/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(/test project/i)).toBeInTheDocument()
-    expect(
-      screen.getByText(/map is unavailable because project coordinates are missing/i)
-    ).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /weather details/i })).toBeTruthy()
+    expect(screen.getByText(/live weather intelligence/i)).toBeTruthy()
+    expect(screen.getByText(/snapshot meta/i)).toBeTruthy()
+    expect(screen.getByText(/source:/i)).toBeTruthy()
+    expect(screen.getByText(/openweather\/usgs/i)).toBeTruthy()
+    expect(screen.getByText(/pressure/i)).toBeTruthy()
+    expect(screen.getByText(/humidity/i)).toBeTruthy()
+    expect(screen.getByText(/weather code \(wmo\)/i)).toBeTruthy()
+    expect(screen.getByText(/code 803 - refer to wmo weather codes standard/i)).toBeTruthy()
   })
 
-  it('renders an embedded map and external map link when coordinates are provided', async () => {
+  it('shows fallback elevation text and closes cleanly', async () => {
     const user = userEvent.setup()
 
     render(
       <WeatherDetailsModal
-        snapshot={baseSnapshot}
-        projectLocation={{ location: { lat: 6.8783, lng: 79.8598 } }}
-        projectName="Wellawatte"
+        snapshot={{
+          ...baseSnapshot,
+          elevation: null,
+        }}
       />
     )
 
-    await user.click(screen.getByRole('button', { name: /view location \+ weather map/i }))
+    await user.click(screen.getByRole('button', { name: /view weather details/i }))
 
-    expect(screen.getAllByText(/wellawatte/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/elevation data unavailable/i)).toBeTruthy()
 
-    const mapLink = screen.getByRole('link', { name: /open in maps/i })
-    expect(mapLink).toHaveAttribute('href', expect.stringContaining('google.com/maps/search'))
+    await user.click(screen.getByRole('button', { name: /done/i }))
 
-    const iframe = document.querySelector('iframe')
-    expect(iframe).toBeInTheDocument()
-    expect(iframe).toHaveAttribute('src', expect.stringContaining('maps'))
+    expect(screen.queryByRole('dialog', { name: /weather details/i })).toBeNull()
   })
 })

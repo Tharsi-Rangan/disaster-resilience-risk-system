@@ -32,6 +32,25 @@ function getStatusBadgeClass(status) {
   return 'border-slate-200 bg-slate-100 text-slate-700'
 }
 
+function InfoBlock({ icon, label, value, hint, iconClassName, accentClassName }) {
+  const BlockIcon = icon
+
+  return (
+    <div className={`group rounded-2xl border bg-white/85 p-4 shadow-sm transition hover:-translate-y-0.5 ${accentClassName}`}>
+      <div className="flex items-start gap-3">
+        <div className={`rounded-xl p-2.5 transition ${iconClassName}`}>
+          <BlockIcon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+          <p className="mt-1 truncate text-sm font-semibold text-slate-900 md:text-base">{value}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{hint}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ProjectInfoCard({ projectId, onProjectLoaded = null }) {
   const [project, setProject] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -61,13 +80,13 @@ function ProjectInfoCard({ projectId, onProjectLoaded = null }) {
 
   if (loading) {
     return (
-      <div className="mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="h-1 w-full bg-linear-to-r from-indigo-500 via-blue-500 to-cyan-500"></div>
+      <div className="mb-6 overflow-hidden rounded-3xl border border-amber-100 bg-linear-to-br from-amber-50 via-white to-orange-50 shadow-sm">
+        <div className="h-1 w-full bg-linear-to-r from-amber-400 via-orange-400 to-rose-400"></div>
         <div className="grid gap-4 p-6 md:grid-cols-3">
           {[...Array(3)].map((_, idx) => (
-            <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="h-4 w-24 animate-pulse rounded bg-slate-200"></div>
-              <div className="mt-3 h-6 w-40 animate-pulse rounded bg-slate-100"></div>
+            <div key={idx} className="rounded-2xl border border-amber-100 bg-white/80 p-4 shadow-sm">
+              <div className="h-4 w-24 animate-pulse rounded bg-amber-100"></div>
+              <div className="mt-3 h-6 w-40 animate-pulse rounded bg-orange-100"></div>
             </div>
           ))}
         </div>
@@ -83,15 +102,15 @@ function ProjectInfoCard({ projectId, onProjectLoaded = null }) {
     ? new Date(project.createdAt).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
       })
     : project?.created_at
-    ? new Date(project.created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    : 'N/A'
+      ? new Date(project.created_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+      : 'N/A'
 
   const location = project?.location || project?.coordinates || {}
   const projectDisplayName =
@@ -125,75 +144,68 @@ function ProjectInfoCard({ projectId, onProjectLoaded = null }) {
   const projectInitial = String(projectDisplayName || 'P').trim().charAt(0).toUpperCase() || 'P'
 
   return (
-    <div className="mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <div className="h-1 w-full bg-linear-to-r from-indigo-500 via-sky-500 to-teal-500"></div>
+    <div className="mb-6 overflow-hidden rounded-3xl border border-amber-100/90 bg-linear-to-br from-amber-50 via-white to-orange-50 shadow-sm">
+      <div className="h-1 w-full bg-linear-to-r from-amber-400 via-orange-400 to-rose-400"></div>
 
-      <div className="border-b border-slate-100 bg-linear-to-r from-slate-50 via-white to-slate-50 px-6 py-4">
+      <div className="border-b border-amber-100 bg-linear-to-r from-amber-50/80 via-white to-orange-50/70 px-6 py-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-sm font-bold text-indigo-700">
-            {projectInitial}
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-amber-200 to-orange-200 text-sm font-bold text-orange-900 shadow-sm">
+              {projectInitial}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">Project Overview</p>
+              <p className="truncate text-base font-semibold text-slate-900">{projectDisplayName}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Project Overview</p>
-            <p className="truncate text-base font-semibold text-slate-900">{projectDisplayName}</p>
-          </div>
-          </div>
-          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getStatusBadgeClass(projectStatus)}`}>
+          <span
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide shadow-sm ${getStatusBadgeClass(projectStatus)}`}
+          >
             {projectStatus}
           </span>
         </div>
-        <p className="mt-3 text-sm text-slate-600">You are viewing risk data for this project.</p>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+          Key project details are grouped here so users can quickly confirm location, type, and creation date before
+          reviewing risk data.
+        </p>
       </div>
 
-      <div className="grid gap-4 p-6 md:grid-cols-4">
-        <div className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-indigo-200 hover:bg-indigo-50/40">
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-indigo-100 p-2.5 transition group-hover:bg-indigo-200">
-              <MapPinned className="h-5 w-5 text-indigo-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Project Name</p>
-              <p className="mt-1 truncate text-lg font-bold text-slate-900">{projectDisplayName}</p>
-            </div>
-          </div>
-        </div>
+      <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
+        <InfoBlock
+          icon={MapPinned}
+          label="Project Name"
+          value={projectDisplayName}
+          hint="Primary project reference used across this page"
+          accentClassName="border-amber-100 hover:border-amber-200 hover:bg-amber-50/70"
+          iconClassName="bg-amber-100 text-amber-700 group-hover:bg-amber-200"
+        />
 
-        <div className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-violet-200 hover:bg-violet-50/40">
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-violet-100 p-2.5 transition group-hover:bg-violet-200">
-              <MapPinned className="h-5 w-5 text-violet-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Type</p>
-              <p className="mt-1 truncate text-sm font-semibold text-slate-900">{projectType}</p>
-            </div>
-          </div>
-        </div>
+        <InfoBlock
+          icon={MapPinned}
+          label="Type"
+          value={projectType}
+          hint="Helps users interpret the risk context"
+          accentClassName="border-orange-100 hover:border-orange-200 hover:bg-orange-50/70"
+          iconClassName="bg-orange-100 text-orange-700 group-hover:bg-orange-200"
+        />
 
-        <div className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-blue-200 hover:bg-blue-50/40">
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-blue-100 p-2.5 transition group-hover:bg-blue-200">
-              <MapPin className="h-5 w-5 text-blue-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Location</p>
-              <p className="mt-1 truncate text-sm font-semibold text-slate-900">{locationText}</p>
-            </div>
-          </div>
-        </div>
+        <InfoBlock
+          icon={MapPin}
+          label="Location"
+          value={locationText}
+          hint="Readable project address or coordinates"
+          accentClassName="border-cyan-100 hover:border-cyan-200 hover:bg-cyan-50/70"
+          iconClassName="bg-cyan-100 text-cyan-700 group-hover:bg-cyan-200"
+        />
 
-        <div className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-emerald-200 hover:bg-emerald-50/40">
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-emerald-100 p-2.5 transition group-hover:bg-emerald-200">
-              <Calendar className="h-5 w-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Created</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">{createdDate}</p>
-            </div>
-          </div>
-        </div>
+        <InfoBlock
+          icon={Calendar}
+          label="Created"
+          value={createdDate}
+          hint="Useful for tracing project lifecycle and updates"
+          accentClassName="border-emerald-100 hover:border-emerald-200 hover:bg-emerald-50/70"
+          iconClassName="bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200"
+        />
       </div>
     </div>
   )

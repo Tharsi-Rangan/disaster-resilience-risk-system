@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Project = require("../models/Project");
 
 exports.ownerOrAdmin = (model) => async (req, res, next) => {
@@ -20,6 +21,12 @@ exports.projectOwnerOrAdminByParam = (paramName = "projectId") => async (req, re
     const projectId = req.params?.[paramName];
     if (!projectId) {
       return res.status(400).json({ message: "Project id is required" });
+    }
+
+    if (!mongoose.isValidObjectId(projectId)) {
+      return res.status(400).json({
+        errors: [{ type: "field", path: paramName, msg: `Invalid ${paramName}`, value: projectId }],
+      });
     }
 
     const project = await Project.findById(projectId).select("createdBy");

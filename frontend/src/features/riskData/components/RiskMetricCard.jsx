@@ -1,4 +1,19 @@
-import { AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react'
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  CloudRain,
+  Eye,
+  Gauge,
+  Thermometer,
+  Waves,
+  Wind,
+  Droplets,
+  Cloud,
+  Mountain,
+  Activity,
+  Radar,
+} from 'lucide-react'
 
 function formatValue(value, unit = '') {
   if (value === null || value === undefined || value === '') return 'N/A'
@@ -8,18 +23,18 @@ function formatValue(value, unit = '') {
   return `${value}${unit}`
 }
 
-// Determine risk level based on typical thresholds
 function getRiskLevel(label, value) {
   if (value === null || value === undefined) return 'neutral'
 
   const thresholds = {
-    'Rainfall': { warning: 5, danger: 15 },
+    Rainfall: { warning: 5, danger: 15 },
     'Wind Speed': { warning: 10, danger: 20 },
     'Flood Risk Index': { warning: 50, danger: 75 },
     'Earthquake Count': { warning: 1, danger: 5 },
-    'Humidity': { warning: 80, danger: 95 },
-    'Temperature': { warning: 35, danger: 40 },
-    'Cloudiness': { warning: 70, danger: 90 },
+    Humidity: { warning: 80, danger: 95 },
+    Temperature: { warning: 35, danger: 40 },
+    Cloudiness: { warning: 70, danger: 90 },
+    'River Discharge': { warning: 100, danger: 200 },
   }
 
   const threshold = thresholds[label]
@@ -59,13 +74,62 @@ function getTextColorClass(riskLevel) {
 function getRiskIcon(riskLevel) {
   switch (riskLevel) {
     case 'danger':
-      return <AlertTriangle className="w-4 h-4 text-red-500" />
+      return <AlertTriangle className="h-4 w-4 text-red-500" />
     case 'warning':
-      return <AlertCircle className="w-4 h-4 text-amber-500" />
+      return <AlertCircle className="h-4 w-4 text-amber-500" />
     case 'safe':
-      return <CheckCircle className="w-4 h-4 text-emerald-500" />
+      return <CheckCircle className="h-4 w-4 text-emerald-500" />
     default:
       return null
+  }
+}
+
+function getMetricIconClass(label) {
+  const classMap = {
+    Rainfall: 'bg-blue-100 text-blue-700',
+    'Wind Speed': 'bg-sky-100 text-sky-700',
+    Temperature: 'bg-rose-100 text-rose-700',
+    Humidity: 'bg-cyan-100 text-cyan-700',
+    Cloudiness: 'bg-slate-100 text-slate-700',
+    Pressure: 'bg-violet-100 text-violet-700',
+    Visibility: 'bg-indigo-100 text-indigo-700',
+    'Earthquake Count': 'bg-amber-100 text-amber-700',
+    'Nearest Earthquake Distance': 'bg-orange-100 text-orange-700',
+    'River Discharge': 'bg-teal-100 text-teal-700',
+    'Flood Risk Index': 'bg-emerald-100 text-emerald-700',
+  }
+
+  return classMap[label] || 'bg-slate-100 text-slate-700'
+}
+
+function renderMetricIcon(label) {
+  const className = 'h-4 w-4'
+
+  switch (label) {
+    case 'Rainfall':
+      return <CloudRain className={className} />
+    case 'Wind Speed':
+      return <Wind className={className} />
+    case 'Temperature':
+      return <Thermometer className={className} />
+    case 'Humidity':
+      return <Droplets className={className} />
+    case 'Cloudiness':
+      return <Cloud className={className} />
+    case 'Pressure':
+      return <Gauge className={className} />
+    case 'Visibility':
+      return <Eye className={className} />
+    case 'Earthquake Count':
+      return <Mountain className={className} />
+    case 'Nearest Earthquake Distance':
+      return <Radar className={className} />
+    case 'River Discharge':
+      return <Waves className={className} />
+    case 'Flood Risk Index':
+      return <Activity className={className} />
+    default:
+      return <Gauge className={className} />
   }
 }
 
@@ -73,6 +137,7 @@ function RiskMetricCard({ label, value, unit = '', helperText = '' }) {
   const riskLevel = getRiskLevel(label, value)
   const colorClass = getColorClass(riskLevel)
   const textColorClass = getTextColorClass(riskLevel)
+  const metricIconClass = getMetricIconClass(label)
 
   const riskBadgeClass = {
     danger: 'bg-red-100 text-red-700 border border-red-200',
@@ -93,8 +158,13 @@ function RiskMetricCard({ label, value, unit = '', helperText = '' }) {
       className={`group rounded-2xl border ${colorClass} p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md`}
       title={helperText || label}
     >
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold tracking-wide text-slate-600">{label}</p>
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className={`rounded-xl p-2.5 ${metricIconClass}`}>
+            {renderMetricIcon(label)}
+          </div>
+          <p className="pt-1 text-sm font-semibold tracking-wide text-slate-600">{label}</p>
+        </div>
         <div className="mt-0.5">{riskLevel !== 'neutral' ? getRiskIcon(riskLevel) : null}</div>
       </div>
 

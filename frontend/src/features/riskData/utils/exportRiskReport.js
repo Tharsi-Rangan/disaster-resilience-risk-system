@@ -1,0 +1,196 @@
+function formatCsvCell(cell) {
+  const str = String(cell ?? '')
+  return str.includes(',') || str.includes('"') || str.includes('\n')
+    ? `"${str.replace(/"/g, '""')}"`
+    : str
+}
+
+function formatDateTime(value) {
+  if (!value) return 'N/A'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'N/A'
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = date.toLocaleString('en-US', { month: 'short' })
+  const year = date.getFullYear()
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${day} ${month} ${year}, ${hours}:${minutes}`
+}
+
+function formatNumber(value, fallback = 'N/A') {
+  if (value === null || value === undefined || value === '') return fallback
+  const number = Number(value)
+  if (!Number.isFinite(number)) return fallback
+  return Number(number.toFixed(2)).toLocaleString()
+}
+
+function getProjectLocation(projectOverview) {
+  const location = projectOverview?.location || projectOverview?.coordinates || {}
+  const latitude =
+    location?.latitude ??
+    location?.lat ??
+    projectOverview?.latitude ??
+    projectOverview?.lat ??
+    (Array.isArray(location?.coordinates) ? location.coordinates[1] : undefined)
+
+  const longitude =
+    location?.longitude ??
+    location?.lng ??
+    location?.lon ??
+    projectOverview?.longitude ??
+    projectOverview?.lng ??
+    projectOverview?.lon ??
+    (Array.isArray(location?.coordinates) ? location.coordinates[0] : undefined)
+
+  const hasCoordinates = Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude))
+
+  return (
+    projectOverview?.address ||
+    projectOverview?.locationName ||
+    projectOverview?.location_name ||
+    (hasCoordinates ? `${Number(latitude).toFixed(4)}, ${Number(longitude).toFixed(4)}` : 'N/A')
+  )
+}
+
+function getGeneratedByLabel(user) {
+  const name = user?.name || user?.fullName || user?.username || ''
+  const role = user?.role || ''
+
+  if (name && role) return `${name} (${role})`
+  if (name) return name
+  if (role) return role
+  return 'System User'
+}
+
+function sanitizeFilePart(value) {
+  return String(value || 'Project')
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '_')
+    .slice(0, 60) || 'Project'
+}
+
+function buildInsight(latestSnapshot) {
+  if (!latestSnapshot) return 'No snapshot insight available.'
+
+  const rainfall = Number(latestSnapshot.rainfall ?? 0)
+  const humidity = Number(latestSnapshot.humidity ?? 0)
+  const floodRiskIndex = Number(latestSnapshot.floodRiskIndex ?? 0)
+  const riverDischarge = Number(latestSnapshot.riverDischarge ?? 0)
+  const earthquakeCount = Number(latestSnapshot.earthquakeCount ?? 0)
+
+  if (floodRiskIndex >= 60 && (humidity >= 70 || rainfall > 5 || riverDischarge >= 100)) {
+    return 'High humidity, rainfall, or river discharge are contributing to increased flood risk.'
+  }
+
+  if (earthquakeCount > 0) {
+    return `Recent seismic activity detected with ${earthquakeCount} recorded event${earthquakeCount !== 1 ? 's' : ''} in the active filter window.`
+  }
+
+  if (humidity >= 60 && rainfall > 0) {
+    return 'High humidity and rainfall are contributing to elevated surface water and dampness conditions.'
+  }
+
+  return 'Current live snapshot shows generally stable hazard conditions for this project.'
+}
+
+function buildReportContent({ history = [], latestSnapshot = null, projectName, projectId, projectOverview, user }) {
+  const effectiveLatestSnapshot = latestSnapshot || history[0] || null
+  const resolvedProjectName =
+    projectOverview?.title || projectOverview?.name || projectName || 'Project'
+  const projectLocation = getProjectLocation(projectOverview)
+  const generatedOn = formatDateTime(new Date())
+  const generatedBy = getGeneratedByLabel(user)
+
+  const numericTemperatures = history
+    .map((item) => Number(item?.temperature))
+    .filter((value) => Number.isFinite(value))
+  const averageTemperature =
+    numericTemperatures.length > 0
+      ? numericTemperatures.reduce((sum, value) => sum + value, 0) / numericTemperatures.length
+      : null
+
+  const totalEarthquakeEvents = history.reduce((sum, item) => {
+    const value = Number(item?.earthquakeCount)
+    return sum + (Number.isFinite(value) ? value : 0)
+  }, 0)
+
+  const latestFloodRiskIndex = effectiveLatestSnapshot?.floodRiskIndex
+  const insightLine = buildInsight(effectiveLatestSnapshot)
+  const earthquakeWindowDays = effectiveLatestSnapshot?.earthquakeWindowDays ?? 'N/A'
+  const earthquakeRadiusKm = effectiveLatestSnapshot?.earthquakeRadiusKm ?? 'N/A'
+  const minEarthquakeMagnitude = effectiveLatestSnapshot?.minEarthquakeMagnitude ?? 'N/A'
+
+  const reportRows = [
+    ['ResiliGuard - Disaster Risk Report'],
+    [],
+    ['Project Name', resolvedProjectName],
+    ['Project ID', projectId || 'N/A'],
+    ['Location', projectLocation],
+    ['Generated On', generatedOn],
+    ['Generated By', generatedBy],
+    [],
+    ['Summary'],
+    ['Total Snapshots', history.length],
+    ['Latest Flood Risk Index', formatNumber(latestFloodRiskIndex, 'No Data')],
+    ['Average Temperature (\u00B0C)', formatNumber(averageTemperature, 'No Data')],
+    ['Total Earthquake Events', totalEarthquakeEvents],
+    ['Insight', insightLine],
+    ['Earthquake Filter', `Last ${earthquakeWindowDays} days • ${earthquakeRadiusKm} km • Magnitude \u2265 ${minEarthquakeMagnitude}`],
+    [],
+    ['Snapshot Records'],
+    [
+      'Date & Time',
+      'Temperature (\u00B0C)',
+      'Rainfall (mm)',
+      'Humidity (%)',
+      'Wind Speed (m/s)',
+      'Earthquake Count',
+      'Flood Risk Index',
+    ],
+    ...history.map((item) => [
+      formatDateTime(item?.fetchedAt),
+      formatNumber(item?.temperature, 'No Data'),
+      formatNumber(item?.rainfall, 'No Data'),
+      formatNumber(item?.humidity, 'No Data'),
+      formatNumber(item?.windSpeed, 'No Data'),
+      formatNumber(item?.earthquakeCount, 'No Data'),
+      formatNumber(item?.floodRiskIndex, 'No Data'),
+    ]),
+    [],
+    ['Report generated by ResiliGuard System'],
+    ['Disaster Resilience Platform'],
+  ]
+
+  return reportRows
+    .map((row) => row.map(formatCsvCell).join(','))
+    .join('\n')
+}
+
+export function exportRiskReportCsv({ history = [], latestSnapshot = null, projectName, projectId, projectOverview, user }) {
+  const csvContent = buildReportContent({
+    history,
+    latestSnapshot,
+    projectName,
+    projectId,
+    projectOverview,
+    user,
+  })
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  const datePart = formatDateTime(new Date()).replace(/[,:]/g, '').replace(/\s+/g, '_')
+  const fileName = `ResiliGuard_Risk_Report_${sanitizeFilePart(projectName)}_${datePart}.csv`
+
+  link.setAttribute('href', url)
+  link.setAttribute('download', fileName)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
